@@ -1,0 +1,131 @@
+prefix: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> '
+
+bossbar: '<red><bold><koth></bold> <dark_gray>| <white><status> <dark_gray>| <yellow><time>'
+
+broadcast:
+  start: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <white><koth><gray> has started!'
+  stop: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <white><koth><gray> has been stopped.'
+  capture-start: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <yellow><player><gray> is capturing <white><koth><gray>!'
+  capture-stop: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <white><koth><gray> is no longer being captured.'
+  contested: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <white><koth><gray> is <red>contested<gray>!'
+  win: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <gold><bold><player></bold><gray> has won <white><koth><gray>!'
+  end-no-winner: '<gradient:#ff4d4d:#ffb84d><bold>NzKoth</bold></gradient> <dark_gray>»<gray> <white><koth><gray> ended with no winner.'
+
+command:
+  wand-given: '<green>You received the selection wand.'
+  created: '<green>Created <white><koth><green> in <white><mode><green> mode (<white><blocks><green> blocks).'
+  deleted: '<green>Deleted <white><koth><green>.'
+  started: '<green>Started <white><koth><green>.'
+  stopped: '<green>Stopped <white><koth><green>.'
+  stopped-all: '<green>Stopped <white><amount><green> running koths.'
+  teleported: '<green>Teleported to <white><koth><green>.'
+  reloaded: '<green>Configuration reloaded.'
+  wins-reset: '<green>Reset koth wins of <white><player><green>.'
+  starter-given: '<green>Gave <white><amount><green>x <white><koth><green> starter to <white><player><green>.'
+  already-exists: '<red>A koth named <white><koth><red> already exists.'
+  already-running: '<red><koth> is already running.'
+  not-running: '<red><koth> is not running.'
+  not-configured: '<red><koth> has no region set.'
+  not-implemented: '<red>The <white><feature><red> feature is not available yet.'
+  list-empty: '<gray>There are no koths yet.'
+  list-header: '<gray>Koths (<white><amount><gray>):'
+  list-entry: '<dark_gray>- <white><koth> <dark_gray>| <gray><mode> <dark_gray>| <gray><state> <dark_gray>| <gray>region: <region>'
+
+wand:
+  name: '<gold><bold>NzKoth Wand</bold>'
+  lore:
+    - '<gray>Left click <dark_gray>- <white>first corner'
+    - '<gray>Right click <dark_gray>- <white>second corner'
+  first: '<green>First corner set to <white><x>, <y>, <z><green>.'
+  second: '<green>Second corner set to <white><x>, <y>, <z><green>.'
+  ready: '<gray>Selection ready: <white><blocks><gray> blocks.'
+  none: '<red>Select two corners with the wand first.'
+
+starter:
+  name: '<gold><bold><koth> Starter</bold>'
+  lore:
+    - '<gray>Mode: <white><mode>'
+    - '<gray>Right click to start this koth.'
+  used: '<green>You started <white><koth><green>.'
+  unknown-koth: '<red>This starter points to a koth that no longer exists (<white><koth><red>).'
+
+editor:
+  title: '<dark_gray>Editing <white><koth>'
+  mode:
+    name: '<yellow>Mode'
+    lore:
+      - '<gray>Current: <white><value>'
+      - '<gray>Click to switch'
+  capture-time:
+    name: '<yellow>Capture time'
+    lore:
+      - '<gray>Current: <white><value><gray>s'
+      - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10'
+  target-score:
+    name: '<yellow>Target score'
+    lore:
+      - '<gray>Current: <white><value>'
+      - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10'
+  max-time:
+    name: '<yellow>Max time'
+    lore:
+      - '<gray>Current: <white><value><gray>s'
+      - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10'
+  bossbar:
+    name: '<yellow>Boss bar'
+    lore:
+      - '<gray>Current: <white><value>'
+  broadcast:
+    name: '<yellow>Broadcasts'
+    lore:
+      - '<gray>Current: <white><value>'
+  crown:
+    name: '<yellow>Winner crown'
+    lore:
+      - '<gray>Current: <white><value>'
+  crown-model:
+    name: '<yellow>Crown custom model data'
+    lore:
+      - '<gray>Current: <white><value>'
+      - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10'
+
+scoreboard:
+  title: '<gradient:#ff4d4d:#ffb84d><bold><koth></bold></gradient>'
+  lines:
+    - '<dark_gray><st>          </st>'
+    - '<gray>Mode: <white><mode>'
+    - '<gray>Status: <white><status>'
+    - '<gray>Leader: <white><leader>'
+    - '<gray>Score: <white><score>'
+    - '<gray>Time: <yellow><time>'
+    - '<dark_gray><st>          </st>'
+
+leaderboard:
+  header: '<gray>Top players <dark_gray>(<white><board><dark_gray>):'
+  entry: '<dark_gray>#<white><position> <gray><player> <dark_gray>- <yellow><wins>'
+  empty: '<gray>No entries on the <white><board><gray> board yet.'
+  none-name: '-'
+
+scheduler:
+  title: '<dark_gray>Schedulers <gray>(<white><amount><gray>)'
+  prompt: '<gray>Type <white><koth> <START|STOP> <cron><gray> in chat, or <white>cancel<gray>. Example: <white>arena START 0 */2 * * *'
+  cancelled: '<gray>Cancelled.'
+  created: '<green>Scheduler <white>#<id><green> created for <white><koth><green> (<white><cron><green>). Next run: <white><next>'
+  bad-input: '<red>Expected: <koth> <START|STOP> <cron with 5 fields>'
+  bad-action: '<red>Unknown action <white><action><red>, use START or STOP.'
+  bad-cron: '<red>Invalid cron expression: <white><cron>'
+  entry:
+    name: '<yellow>#<id> <dark_gray>- <white><koth>'
+    lore:
+      - '<gray>Cron: <white><cron>'
+      - '<gray>Action: <white><action>'
+      - '<gray>State: <white><state>'
+      - '<gray>Next run: <white><next>'
+      - ''
+      - '<gray>Left click <dark_gray>- <white>toggle'
+      - '<gray>Right click <dark_gray>- <white>switch action'
+      - '<gray>Shift + right <dark_gray>- <red>delete'
+  add:
+    name: '<green><bold>Add scheduler</bold>'
+    lore:
+      - '<gray>Click to create a new one'

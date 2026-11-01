@@ -1,0 +1,46 @@
+storage:
+  type: YAML
+  jdbc-url: ''
+  username: ''
+  password: ''
+  table-prefix: 'nzkoth_'
+
+modules:
+  bossbars: true
+  scoreboards: true
+  broadcasts: true
+
+crown:
+  duration-ticks: 200
+
+wand:
+  material: GOLDEN_AXE
+  custom-model-data: 0
+
+starter:
+  material: NETHER_STAR
+  custom-model-data: 0
+
+teams:
+  display: SUFFIX
+  placeholder: ''
+  no-team: ''
+
+leaderboards:
+  preload:
+    - alltime
+    - daily
+    - weekly
+
+webhooks:
+  enabled: false
+  url: ''
+  username: 'NzKoth'
+  color: 16731469
+  events:
+    start: '**%koth%** has started (%mode%)'
+    stop: '**%koth%** was stopped'
+    capture-start: '%player% is capturing **%koth%**'
+    capture-stop: '**%koth%** is no longer being captured'
+    capture: '%player% has won **%koth%**'
+    end: '**%koth%** ended with no winner'

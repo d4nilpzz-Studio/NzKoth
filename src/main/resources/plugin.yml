@@ -1,0 +1,16 @@
+name: NzKoth
+version: '${version}'
+
+main: dev.d4nilpzz.nzKoth.NzKoth
+api-version: '1.21'
+load: POSTWORLD
+
+softdepend: [ PlaceholderAPI ]
+
+permissions:
+  nzkoth.admin:
+    description: Full access to NzKoth commands
+    default: op
+
+authors: [ d4nilpzz ]
+website: https://github.com/d4nilpzz
