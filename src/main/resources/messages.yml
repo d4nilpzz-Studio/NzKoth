@@ -88,6 +88,28 @@ editor:
     lore:
       - '<gray>Current: <white><value>'
       - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10'
+  crown-glow:
+    name: '<yellow>Crown full bright'
+    lore:
+      - '<gray>Current: <white><value>'
+      - '<gray>Renders the crown lit in the dark'
+  crown-glint:
+    name: '<yellow>Crown enchant glint'
+    lore:
+      - '<gray>Current: <white><value>'
+      - '<gray>Adds the enchanted shimmer'
+  crown-outline:
+    name: '<yellow>Crown outline'
+    lore:
+      - '<gray>Current: <white><value>'
+      - '<gray>Color: <white><color>'
+      - '<gray>Left click <dark_gray>- <white>toggle'
+      - '<gray>Right click <dark_gray>- <white>next color'
+  crown-height:
+    name: '<yellow>Crown height'
+    lore:
+      - '<gray>Current: <white><value><gray> blocks above the winner'
+      - '<gray>Left +0.1 <dark_gray>| <gray>Right -0.1 <dark_gray>| <gray>Shift x10'
 
 scoreboard:
   title: '<gradient:#ff4d4d:#ffb84d><bold><koth></bold></gradient>'

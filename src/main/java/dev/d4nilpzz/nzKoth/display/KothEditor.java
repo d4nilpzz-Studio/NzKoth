@@ -31,8 +31,15 @@ public final class KothEditor implements Listener {
     private static final int SLOT_BROADCAST = 30;
     private static final int SLOT_CROWN = 32;
     private static final int SLOT_CROWN_MODEL = 34;
+    private static final int SLOT_CROWN_GLOW = 38;
+    private static final int SLOT_CROWN_GLINT = 40;
+    private static final int SLOT_CROWN_HEIGHT = 42;
+    private static final int SLOT_CROWN_OUTLINE = 44;
 
     private final NzKoth plugin;
+    private static final java.util.List<String> OUTLINE_COLORS = java.util.List.of(
+            "gold", "yellow", "red", "aqua", "green", "light_purple", "white", "blue");
+
     private final Map<UUID, Koth> editing = new HashMap<>();
 
     public KothEditor(@NotNull NzKoth plugin) {
@@ -62,6 +69,14 @@ public final class KothEditor implements Listener {
         inventory.setItem(SLOT_CROWN, toggle(koth.crownEnabled(), "editor.crown"));
         inventory.setItem(SLOT_CROWN_MODEL, item(Material.GOLDEN_HELMET, "editor.crown-model",
                 Placeholder.unparsed("value", String.valueOf(koth.crownCustomModelData()))));
+        inventory.setItem(SLOT_CROWN_GLOW, toggle(koth.crownGlow(), "editor.crown-glow"));
+        inventory.setItem(SLOT_CROWN_GLINT, toggle(koth.crownGlint(), "editor.crown-glint"));
+        inventory.setItem(SLOT_CROWN_OUTLINE, item(
+                koth.crownOutline() ? Material.GLOWSTONE_DUST : Material.GUNPOWDER, "editor.crown-outline",
+                Placeholder.unparsed("value", koth.crownOutline() ? "enabled" : "disabled"),
+                Placeholder.unparsed("color", koth.crownOutlineColor())));
+        inventory.setItem(SLOT_CROWN_HEIGHT, item(Material.SCAFFOLDING, "editor.crown-height",
+                Placeholder.unparsed("value", String.format(java.util.Locale.ROOT, "%.1f", koth.crownHeight()))));
     }
 
     private @NotNull ItemStack item(@NotNull Material material,
@@ -114,12 +129,28 @@ public final class KothEditor implements Listener {
             case SLOT_CROWN -> koth.crownEnabled(!koth.crownEnabled());
             case SLOT_CROWN_MODEL -> koth.crownCustomModelData(
                     Math.max(0, koth.crownCustomModelData() + delta));
+            case SLOT_CROWN_GLOW -> koth.crownGlow(!koth.crownGlow());
+            case SLOT_CROWN_GLINT -> koth.crownGlint(!koth.crownGlint());
+            case SLOT_CROWN_OUTLINE -> {
+                if (event.getClick() == ClickType.RIGHT) {
+                    koth.crownOutlineColor(nextColor(koth.crownOutlineColor()));
+                } else {
+                    koth.crownOutline(!koth.crownOutline());
+                }
+            }
+            case SLOT_CROWN_HEIGHT -> koth.crownHeight(
+                    Math.max(0.5, Math.round((koth.crownHeight() + delta * 0.1) * 10.0) / 10.0));
             default -> {
                 return;
             }
         }
         plugin.koths().save(koth);
         render(event.getInventory(), koth);
+    }
+
+    private static @NotNull String nextColor(@NotNull String current) {
+        int index = OUTLINE_COLORS.indexOf(current.toLowerCase(java.util.Locale.ROOT));
+        return OUTLINE_COLORS.get((index + 1) % OUTLINE_COLORS.size());
     }
 
     @EventHandler

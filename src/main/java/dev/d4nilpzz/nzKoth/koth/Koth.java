@@ -29,9 +29,13 @@ public final class Koth {
 
     private boolean crownEnabled = true;
     private String crownMaterial = "GOLDEN_HELMET";
-    private int crownCustomModelData = 0;
-    private double crownHeight = 0.45;
+    private int crownCustomModelData = 1002;
+    private double crownHeight = 2.2;
     private int crownSpinTicks = 40;
+    private boolean crownGlow = true;
+    private boolean crownGlint = false;
+    private boolean crownOutline = true;
+    private String crownOutlineColor = "gold";
 
     private final Rewards rewards = new Rewards();
 
@@ -194,6 +198,38 @@ public final class Koth {
 
     public void crownSpinTicks(int value) {
         this.crownSpinTicks = value;
+    }
+
+    public boolean crownGlow() {
+        return crownGlow;
+    }
+
+    public void crownGlow(boolean value) {
+        this.crownGlow = value;
+    }
+
+    public boolean crownGlint() {
+        return crownGlint;
+    }
+
+    public void crownGlint(boolean value) {
+        this.crownGlint = value;
+    }
+
+    public boolean crownOutline() {
+        return crownOutline;
+    }
+
+    public void crownOutline(boolean value) {
+        this.crownOutline = value;
+    }
+
+    public @NotNull String crownOutlineColor() {
+        return crownOutlineColor;
+    }
+
+    public void crownOutlineColor(@NotNull String value) {
+        this.crownOutlineColor = value;
     }
 
     public @NotNull Rewards rewards() {

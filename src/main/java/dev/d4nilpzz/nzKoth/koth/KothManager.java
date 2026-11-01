@@ -123,6 +123,10 @@ public final class KothManager {
         yaml.set("crown.custom-model-data", koth.crownCustomModelData());
         yaml.set("crown.height", koth.crownHeight());
         yaml.set("crown.spin-ticks", koth.crownSpinTicks());
+        yaml.set("crown.glow", koth.crownGlow());
+        yaml.set("crown.glint", koth.crownGlint());
+        yaml.set("crown.outline", koth.crownOutline());
+        yaml.set("crown.outline-color", koth.crownOutlineColor());
 
         yaml.set("rewards.commands", koth.rewards().commands());
         yaml.set("rewards.broadcast-commands", koth.rewards().broadcastCommands());
@@ -181,9 +185,20 @@ public final class KothManager {
 
         koth.crownEnabled(yaml.getBoolean("crown.enabled", true));
         koth.crownMaterial(yaml.getString("crown.material", "GOLDEN_HELMET"));
-        koth.crownCustomModelData(yaml.getInt("crown.custom-model-data", 0));
-        koth.crownHeight(yaml.getDouble("crown.height", 0.45));
+        koth.crownCustomModelData(yaml.getInt("crown.custom-model-data", 1002));
+        double crownHeight = yaml.getDouble("crown.height", 2.2);
+        if (crownHeight < 1.0) {
+            plugin.getComponentLogger().warn(
+                    "Koth '{}' had crown height {} measured from the old mount point; using 2.2 instead",
+                    name, crownHeight);
+            crownHeight = 2.2;
+        }
+        koth.crownHeight(crownHeight);
         koth.crownSpinTicks(yaml.getInt("crown.spin-ticks", 40));
+        koth.crownGlow(yaml.getBoolean("crown.glow", true));
+        koth.crownGlint(yaml.getBoolean("crown.glint", false));
+        koth.crownOutline(yaml.getBoolean("crown.outline", true));
+        koth.crownOutlineColor(yaml.getString("crown.outline-color", "gold"));
 
         koth.rewards().commands(yaml.getStringList("rewards.commands"));
         koth.rewards().broadcastCommands(yaml.getStringList("rewards.broadcast-commands"));

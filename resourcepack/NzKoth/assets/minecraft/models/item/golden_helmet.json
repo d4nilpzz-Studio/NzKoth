@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/golden_helmet"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1001
+      },
+      "model": "nzkoth:item/crown"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1002
+      },
+      "model": "nzkoth:item/cup"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1003
+      },
+      "model": "nzkoth:item/medal"
+    }
+  ]
+}
