@@ -18,6 +18,7 @@ public final class Leaderboard {
     private final Duration period;
     private final Map<UUID, Integer> wins = new HashMap<>();
     private final Map<UUID, String> names = new HashMap<>();
+    private final Map<String, Integer> teamWins = new HashMap<>();
     private Instant periodStart;
 
     public Leaderboard(@NotNull String id, @NotNull Duration period, @NotNull Instant periodStart) {
@@ -53,6 +54,7 @@ public final class Leaderboard {
     public void roll(@NotNull Instant now) {
         wins.clear();
         names.clear();
+        teamWins.clear();
         if (isAllTime()) {
             return;
         }
@@ -75,6 +77,32 @@ public final class Leaderboard {
     public void clear() {
         wins.clear();
         names.clear();
+        teamWins.clear();
+    }
+
+    public void recordTeam(@NotNull String team) {
+        if (!team.isBlank()) {
+            teamWins.merge(team, 1, Integer::sum);
+        }
+    }
+
+    public int teamWinsOf(@NotNull String team) {
+        return teamWins.getOrDefault(team, 0);
+    }
+
+    public @NotNull Map<String, Integer> rawTeams() {
+        return teamWins;
+    }
+
+    public void loadTeam(@NotNull String team, int amount) {
+        teamWins.put(team, amount);
+    }
+
+    public @NotNull List<Map.Entry<String, Integer>> topTeams(int limit) {
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(teamWins.entrySet());
+        entries.sort(Map.Entry.<String, Integer>comparingByValue().reversed()
+                .thenComparing(Map.Entry::getKey));
+        return entries.size() > limit ? new ArrayList<>(entries.subList(0, limit)) : entries;
     }
 
     public int winsOf(@NotNull UUID playerId) {

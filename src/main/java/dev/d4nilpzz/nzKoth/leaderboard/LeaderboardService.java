@@ -52,6 +52,12 @@ public final class LeaderboardService {
                 }
                 Leaderboard board = new Leaderboard(id, period,
                         Instant.ofEpochSecond(section.getLong("period-start", Instant.now().getEpochSecond())));
+                ConfigurationSection teams = section.getConfigurationSection("teams");
+                if (teams != null) {
+                    for (String key : teams.getKeys(false)) {
+                        board.loadTeam(key, teams.getInt(key, 0));
+                    }
+                }
                 ConfigurationSection entries = section.getConfigurationSection("entries");
                 if (entries != null) {
                     for (String key : entries.getKeys(false)) {
@@ -101,11 +107,27 @@ public final class LeaderboardService {
         }
     }
 
-    public void record(@NotNull UUID playerId, @NotNull String playerName) {
+    public void record(@NotNull UUID playerId, @NotNull String playerName, @NotNull String team) {
         for (Leaderboard board : boards.values()) {
             board.record(playerId, playerName);
+            board.recordTeam(team);
         }
         dirty = true;
+    }
+
+    public @NotNull List<Map.Entry<String, Integer>> topTeams(@NotNull String boardId, int limit) {
+        Leaderboard board = board(boardId);
+        return board == null ? List.of() : board.topTeams(limit);
+    }
+
+    public int teamWins(@NotNull String boardId, @NotNull String team) {
+        Leaderboard board = board(boardId);
+        return board == null ? 0 : board.teamWinsOf(team);
+    }
+
+    public int playerWins(@NotNull String boardId, @NotNull UUID playerId) {
+        Leaderboard board = board(boardId);
+        return board == null ? 0 : board.winsOf(playerId);
     }
 
     public void reset(@NotNull UUID playerId) {
@@ -195,6 +217,9 @@ public final class LeaderboardService {
                 String path = base + ".entries." + entry.getKey();
                 yaml.set(path + ".name", board.rawNames().getOrDefault(entry.getKey(), ""));
                 yaml.set(path + ".wins", entry.getValue());
+            }
+            for (Map.Entry<String, Integer> entry : board.rawTeams().entrySet()) {
+                yaml.set(base + ".teams." + entry.getKey(), entry.getValue());
             }
         }
         try {

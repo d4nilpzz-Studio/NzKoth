@@ -156,4 +156,44 @@ public final class SchedulerService {
     public int size() {
         return schedules.size();
     }
+
+    public long secondsUntilNext() {
+        return secondsUntil(earliest(schedule -> true));
+    }
+
+    public long secondsUntilNext(@NotNull String kothName) {
+        return secondsUntil(earliest(schedule ->
+                schedule.kothName().equalsIgnoreCase(kothName)
+                        && schedule.action() == ScheduleAction.START));
+    }
+
+    public long secondsUntilSchedule(@NotNull String id) {
+        Schedule schedule = schedules.get(id);
+        if (schedule == null) {
+            return -1L;
+        }
+        return secondsUntil(schedule.nextRun(LocalDateTime.now()));
+    }
+
+    private @Nullable LocalDateTime earliest(@NotNull java.util.function.Predicate<Schedule> filter) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime best = null;
+        for (Schedule schedule : schedules.values()) {
+            if (!schedule.enabled() || !filter.test(schedule)) {
+                continue;
+            }
+            LocalDateTime next = schedule.nextRun(now);
+            if (next != null && (best == null || next.isBefore(best))) {
+                best = next;
+            }
+        }
+        return best;
+    }
+
+    private static long secondsUntil(@Nullable LocalDateTime target) {
+        if (target == null) {
+            return -1L;
+        }
+        return Math.max(0L, java.time.Duration.between(LocalDateTime.now(), target).toSeconds());
+    }
 }

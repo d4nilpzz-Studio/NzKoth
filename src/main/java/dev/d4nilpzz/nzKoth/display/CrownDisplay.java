@@ -26,8 +26,9 @@ import java.util.UUID;
 public final class CrownDisplay {
 
     private static final int SPIN_STEP_TICKS = 4;
-    private static final int TELEPORT_DURATION = 2;
+    private static final int TELEPORT_DURATION = 1;
     private static final double MOVE_EPSILON = 0.0001;
+    private static final double MAX_LEAD = 1.2;
     private static final Vector3f SCALE = new Vector3f(0.7f, 0.7f, 0.7f);
     private static final Vector3f NO_TRANSLATION = new Vector3f();
     private static final Quaternionf NO_ROTATION = new Quaternionf();
@@ -106,9 +107,21 @@ public final class CrownDisplay {
             return;
         }
         Location anchor = anchorOf(owner, crown.height);
-        if (!anchor.getWorld().equals(crown.display.getWorld())) {
-            crown.display.teleport(anchor);
-        } else if (crown.display.getLocation().distanceSquared(anchor) > MOVE_EPSILON) {
+        Location previous = crown.lastSeen;
+        crown.lastSeen = anchor.clone();
+
+        if (previous != null && previous.getWorld().equals(anchor.getWorld())) {
+            double dx = anchor.getX() - previous.getX();
+            double dy = anchor.getY() - previous.getY();
+            double dz = anchor.getZ() - previous.getZ();
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (distance > MOVE_EPSILON && distance <= MAX_LEAD) {
+                anchor.add(dx, dy, dz);
+            }
+        }
+
+        if (!anchor.getWorld().equals(crown.display.getWorld())
+                || crown.display.getLocation().distanceSquared(anchor) > MOVE_EPSILON) {
             crown.display.teleport(anchor);
         }
         crown.tickSpin();
@@ -169,6 +182,7 @@ public final class CrownDisplay {
         private final double anglePerStep;
         private int sinceSpin;
         private double angle;
+        private Location lastSeen;
         private BukkitTask task;
 
         private Crown(ItemDisplay display, UUID playerId, double height, double anglePerStep) {

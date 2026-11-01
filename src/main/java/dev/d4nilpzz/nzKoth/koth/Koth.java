@@ -11,6 +11,7 @@ import java.util.Locale;
 public final class Koth {
 
     private final String name;
+    private String displayName;
     private KothMode mode;
     private Cuboid region;
     private Location spawn;
@@ -50,6 +51,14 @@ public final class Koth {
 
     public @NotNull String lowerName() {
         return name.toLowerCase(Locale.ROOT);
+    }
+
+    public @NotNull String displayName() {
+        return displayName == null || displayName.isBlank() ? name : displayName;
+    }
+
+    public void displayName(@Nullable String value) {
+        this.displayName = value;
     }
 
     public @NotNull KothMode mode() {

@@ -89,6 +89,7 @@ public final class KothManager {
         File file = new File(folder, koth.lowerName() + ".yml");
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("name", koth.name());
+        yaml.set("display-name", koth.displayName());
         yaml.set("mode", koth.mode().name());
         yaml.set("capture-time", koth.captureTime().toSeconds());
         yaml.set("max-time", koth.maxTime().toSeconds());
@@ -149,6 +150,7 @@ public final class KothManager {
         String name = yaml.getString("name", file.getName().replace(".yml", ""));
         KothMode mode = KothMode.parse(yaml.getString("mode", "CAPTURE"));
         Koth koth = new Koth(name, mode == null ? KothMode.CAPTURE : mode);
+        koth.displayName(yaml.getString("display-name", name));
 
         koth.captureTime(Duration.ofSeconds(yaml.getLong("capture-time", 300)));
         koth.maxTime(Duration.ofSeconds(yaml.getLong("max-time", 900)));

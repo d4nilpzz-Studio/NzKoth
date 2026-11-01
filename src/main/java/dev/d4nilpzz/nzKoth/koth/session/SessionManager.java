@@ -186,7 +186,8 @@ public final class SessionManager {
             runRewards(koth, online);
         }
         plugin.storage().addWin(winnerId, session.winnerName(), koth.name());
-        plugin.leaderboards().record(winnerId, session.winnerName());
+        String winnerTeam = online == null ? "" : plugin.teams().teamOf(online);
+        plugin.leaderboards().record(winnerId, session.winnerName(), winnerTeam);
     }
 
     private void cleanUpDisplays(@NotNull Koth koth) {
