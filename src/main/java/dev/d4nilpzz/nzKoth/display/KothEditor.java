@@ -4,54 +4,71 @@ import dev.d4nilpzz.nzKoth.NzKoth;
 import dev.d4nilpzz.nzKoth.koth.Koth;
 import dev.d4nilpzz.nzKoth.koth.KothMode;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.List;
+import java.util.Locale;
 
 public final class KothEditor implements Listener {
+
+    private static final int SIZE = 54;
 
     private static final int SLOT_MODE = 10;
     private static final int SLOT_CAPTURE_TIME = 12;
     private static final int SLOT_TARGET_SCORE = 14;
     private static final int SLOT_MAX_TIME = 16;
     private static final int SLOT_BOSSBAR = 28;
-    private static final int SLOT_BROADCAST = 30;
-    private static final int SLOT_CROWN = 32;
+    private static final int SLOT_BROADCAST = 29;
+    private static final int SLOT_CROWN = 30;
+    private static final int SLOT_CROWN_OUTLINE = 33;
     private static final int SLOT_CROWN_MODEL = 34;
-    private static final int SLOT_CROWN_GLOW = 38;
-    private static final int SLOT_CROWN_GLINT = 40;
-    private static final int SLOT_CROWN_HEIGHT = 42;
-    private static final int SLOT_CROWN_OUTLINE = 44;
+    private static final int SLOT_CROWN_GLOW = 37;
+    private static final int SLOT_CROWN_GLINT = 38;
+    private static final int SLOT_REWARDS = 42;
+    private static final int SLOT_CROWN_HEIGHT = 43;
 
-    private final NzKoth plugin;
-    private static final java.util.List<String> OUTLINE_COLORS = java.util.List.of(
+    private static final List<String> OUTLINE_COLORS = List.of(
             "gold", "yellow", "red", "aqua", "green", "light_purple", "white", "blue");
 
-    private final Map<UUID, Koth> editing = new HashMap<>();
+    private final NzKoth plugin;
 
     public KothEditor(@NotNull NzKoth plugin) {
         this.plugin = plugin;
     }
 
+    private static final class EditorMenu implements InventoryHolder {
+        private final Koth koth;
+        private Inventory inventory;
+
+        private EditorMenu(@NotNull Koth koth) {
+            this.koth = koth;
+        }
+
+        @Override
+        public @NotNull Inventory getInventory() {
+            return inventory;
+        }
+    }
+
     public void open(@NotNull Player player, @NotNull Koth koth) {
-        Inventory inventory = plugin.getServer().createInventory(null, 45,
+        EditorMenu menu = new EditorMenu(koth);
+        menu.inventory = plugin.getServer().createInventory(menu, SIZE,
                 plugin.messages().get("editor.title", Placeholder.unparsed("koth", koth.name())));
-        editing.put(player.getUniqueId(), koth);
-        render(inventory, koth);
-        player.openInventory(inventory);
+        render(menu.inventory, koth);
+        player.openInventory(menu.inventory);
     }
 
     private void render(@NotNull Inventory inventory, @NotNull Koth koth) {
@@ -76,12 +93,14 @@ public final class KothEditor implements Listener {
                 Placeholder.unparsed("value", koth.crownOutline() ? "enabled" : "disabled"),
                 Placeholder.unparsed("color", koth.crownOutlineColor())));
         inventory.setItem(SLOT_CROWN_HEIGHT, item(Material.SCAFFOLDING, "editor.crown-height",
-                Placeholder.unparsed("value", String.format(java.util.Locale.ROOT, "%.1f", koth.crownHeight()))));
+                Placeholder.unparsed("value", String.format(Locale.ROOT, "%.1f", koth.crownHeight()))));
+        inventory.setItem(SLOT_REWARDS, item(Material.CHEST, "editor.rewards",
+                Placeholder.unparsed("commands", String.valueOf(koth.rewards().commands().size())),
+                Placeholder.unparsed("broadcast", String.valueOf(koth.rewards().broadcastCommands().size()))));
+        Menus.fillEmpty(inventory);
     }
 
-    private @NotNull ItemStack item(@NotNull Material material,
-                                    @NotNull String key,
-                                    net.kyori.adventure.text.minimessage.tag.resolver.TagResolver... resolvers) {
+    private @NotNull ItemStack item(@NotNull Material material, @NotNull String key, TagResolver... resolvers) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         meta.displayName(plugin.messages().get(key + ".name", resolvers));
@@ -96,18 +115,26 @@ public final class KothEditor implements Listener {
     }
 
     @EventHandler
+    public void onDrag(@NotNull InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof EditorMenu) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onClick(@NotNull InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        Koth koth = editing.get(player.getUniqueId());
-        if (koth == null || !event.getInventory().equals(event.getView().getTopInventory())) {
-            return;
-        }
-        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(event.getView().getTopInventory())) {
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof EditorMenu menu)) {
             return;
         }
         event.setCancelled(true);
+        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) {
+            return;
+        }
+        Koth koth = menu.koth;
 
         int delta = switch (event.getClick()) {
             case LEFT -> 1;
@@ -118,6 +145,10 @@ public final class KothEditor implements Listener {
         };
 
         switch (event.getSlot()) {
+            case SLOT_REWARDS -> {
+                plugin.rewardsEditor().open(player, koth);
+                return;
+            }
             case SLOT_MODE -> koth.mode(koth.mode() == KothMode.CAPTURE ? KothMode.SCORE : KothMode.CAPTURE);
             case SLOT_CAPTURE_TIME -> koth.captureTime(
                     Duration.ofSeconds(Math.max(1, koth.captureTime().toSeconds() + delta)));
@@ -145,24 +176,11 @@ public final class KothEditor implements Listener {
             }
         }
         plugin.koths().save(koth);
-        render(event.getInventory(), koth);
+        render(top, koth);
     }
 
     private static @NotNull String nextColor(@NotNull String current) {
-        int index = OUTLINE_COLORS.indexOf(current.toLowerCase(java.util.Locale.ROOT));
+        int index = OUTLINE_COLORS.indexOf(current.toLowerCase(Locale.ROOT));
         return OUTLINE_COLORS.get((index + 1) % OUTLINE_COLORS.size());
-    }
-
-    @EventHandler
-    public void onClose(@NotNull InventoryCloseEvent event) {
-        editing.remove(event.getPlayer().getUniqueId());
-    }
-
-    public boolean isEditing(@NotNull Player player) {
-        return editing.containsKey(player.getUniqueId());
-    }
-
-    public @NotNull ClickType noop() {
-        return ClickType.UNKNOWN;
     }
 }

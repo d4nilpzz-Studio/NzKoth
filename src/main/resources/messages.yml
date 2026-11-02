@@ -110,6 +110,58 @@ editor:
     lore:
       - '<gray>Current: <white><value><gray> blocks above the winner'
       - '<gray>Left +0.1 <dark_gray>| <gray>Right -0.1 <dark_gray>| <gray>Shift x10'
+  rewards:
+    name: '<gold><bold>Rewards</bold>'
+    lore:
+      - '<gray>Commands: <white><commands>'
+      - '<gray>Broadcast commands: <white><broadcast>'
+      - ''
+      - '<gray>Click to edit'
+
+rewards:
+  title: '<dark_gray>Rewards <gray>- <white><koth>'
+  prompt-add: '<gray>Type the command in chat without <white>/<gray>. Use <white>%<white>player%<gray> for the winner, or type <white>cancel<gray>.'
+  prompt-edit: '<gray>Type the new command in chat without <white>/<gray>, or type <white>cancel<gray>.'
+  current: '<gray>Current: <white><command> <dark_gray>(click to copy)'
+  saved: '<green>Reward saved: <white><command>'
+  cancelled: '<gray>Cancelled.'
+  full: '<red>This koth already has the maximum number of rewards.'
+  command:
+    name: '<yellow>Command #<number>'
+    lore:
+      - '<white><command>'
+      - ''
+      - '<gray>Left click <dark_gray>- <white>edit'
+      - '<gray>Right click <dark_gray>- <white>make broadcast command'
+      - '<gray>Shift + left <dark_gray>- <white>move up'
+      - '<gray>Shift + right <dark_gray>- <red>delete'
+  broadcast-command:
+    name: '<aqua>Broadcast command #<number>'
+    lore:
+      - '<white><command>'
+      - ''
+      - '<gray>Left click <dark_gray>- <white>edit'
+      - '<gray>Right click <dark_gray>- <white>make normal command'
+      - '<gray>Shift + left <dark_gray>- <white>move up'
+      - '<gray>Shift + right <dark_gray>- <red>delete'
+  back:
+    name: '<yellow>Back'
+    lore:
+      - '<gray>Return to the koth editor'
+  add-command:
+    name: '<green><bold>Add command</bold>'
+    lore:
+      - '<gray>Runs from console for the winner'
+  add-broadcast:
+    name: '<aqua><bold>Add broadcast command</bold>'
+    lore:
+      - '<gray>Runs from console, meant for'
+      - '<gray>announcements to everyone'
+  help:
+    name: '<gold>Placeholders'
+    lore:
+      - '<white>%<white>player% <dark_gray>- <gray>winner name'
+      - '<white>{player} <dark_gray>- <gray>winner name'
 
 scoreboard:
   title: '<gradient:#ff4d4d:#ffb84d><bold><koth></bold></gradient>'
@@ -129,13 +181,16 @@ leaderboard:
   none-name: '-'
 
 scheduler:
-  title: '<dark_gray>Schedulers <gray>(<white><amount><gray>)'
-  prompt: '<gray>Type <white><koth> <START|STOP> <cron><gray> in chat, or <white>cancel<gray>. Example: <white>arena START 0 */2 * * *'
-  cancelled: '<gray>Cancelled.'
-  created: '<green>Scheduler <white>#<id><green> created for <white><koth><green> (<white><cron><green>). Next run: <white><next>'
-  bad-input: '<red>Expected: <koth> <START|STOP> <cron with 5 fields>'
-  bad-action: '<red>Unknown action <white><action><red>, use START or STOP.'
+  title: '<dark_gray>Schedulers <gray>(<white><amount><gray>) <dark_gray><page>/<pages>'
+  saved: '<green>Scheduler <white>#<id><green> saved for <white><koth><green> (<white><cron><green>). Next run: <white><next>'
+  deleted: '<gray>Scheduler <white>#<id><gray> deleted.'
+  no-koths: '<red>There are no koths configured yet.'
+  no-days: '<red>Select at least one day.'
   bad-cron: '<red>Invalid cron expression: <white><cron>'
+  frequency:
+    daily: 'At a fixed time'
+    every_hours: 'Every X hours'
+    every_minutes: 'Every X minutes'
   entry:
     name: '<yellow>#<id> <dark_gray>- <white><koth>'
     lore:
@@ -144,10 +199,98 @@ scheduler:
       - '<gray>State: <white><state>'
       - '<gray>Next run: <white><next>'
       - ''
-      - '<gray>Left click <dark_gray>- <white>toggle'
-      - '<gray>Right click <dark_gray>- <white>switch action'
+      - '<gray>Left click <dark_gray>- <white>edit'
+      - '<gray>Right click <dark_gray>- <white>toggle'
       - '<gray>Shift + right <dark_gray>- <red>delete'
   add:
     name: '<green><bold>Add scheduler</bold>'
     lore:
       - '<gray>Click to create a new one'
+  previous:
+    name: '<yellow>Previous page'
+    lore: []
+  next:
+    name: '<yellow>Next page'
+    lore: []
+  edit:
+    title: '<dark_gray>Edit scheduler <gray>#<id>'
+    title-new: '<dark_gray>New scheduler'
+    day-names:
+      - 'Monday'
+      - 'Tuesday'
+      - 'Wednesday'
+      - 'Thursday'
+      - 'Friday'
+      - 'Saturday'
+      - 'Sunday'
+    preview:
+      name: '<gold><bold>Preview</bold>'
+      lore:
+        - '<gray>Cron: <white><cron>'
+        - '<gray>Next run: <white><next>'
+    preview-custom:
+      name: '<gold><bold>Preview</bold>'
+      lore:
+        - '<gray>Cron: <white><cron>'
+        - '<gray>Next run: <white><next>'
+        - ''
+        - '<yellow>Custom cron, changing the time'
+        - '<yellow>or days will replace it'
+    koth:
+      name: '<aqua>Koth <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Left click <dark_gray>- <white>next'
+        - '<gray>Right click <dark_gray>- <white>previous'
+    action:
+      name: '<aqua>Action <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Click to switch START / STOP'
+    frequency:
+      name: '<aqua>Frequency <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Left click <dark_gray>- <white>next'
+        - '<gray>Right click <dark_gray>- <white>previous'
+    enabled:
+      name: '<aqua>State <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Click to toggle'
+    hour:
+      name: '<aqua>Hour <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Left / right <dark_gray>- <white>+1 / -1'
+        - '<gray>Shift <dark_gray>- <white>+6 / -6'
+    minute:
+      name: '<aqua>Minute <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Left / right <dark_gray>- <white>+1 / -1'
+        - '<gray>Shift <dark_gray>- <white>+15 / -15'
+    interval-hours:
+      name: '<aqua>Every <white><value><aqua> hours'
+      lore:
+        - '<gray>Left / right <dark_gray>- <white>+1 / -1'
+        - '<gray>Shift <dark_gray>- <white>+5 / -5'
+    interval-minutes:
+      name: '<aqua>Every <white><value><aqua> minutes'
+      lore:
+        - '<gray>Left / right <dark_gray>- <white>+1 / -1'
+        - '<gray>Shift <dark_gray>- <white>+5 / -5'
+    all-days:
+      name: '<aqua>Every day <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Click to select or clear all days'
+    day:
+      name: '<aqua><day> <dark_gray>- <white><value>'
+      lore:
+        - '<gray>Click to toggle'
+    back:
+      name: '<yellow>Back'
+      lore:
+        - '<gray>Discard changes'
+    save:
+      name: '<green><bold>Save</bold>'
+      lore:
+        - '<gray>Click to save this scheduler'
+    delete:
+      name: '<red><bold>Delete</bold>'
+      lore:
+        - '<gray>Click to delete this scheduler'

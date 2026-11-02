@@ -7,6 +7,7 @@ import dev.d4nilpzz.nzKoth.config.Settings;
 import dev.d4nilpzz.nzKoth.display.BossBarService;
 import dev.d4nilpzz.nzKoth.display.CrownDisplay;
 import dev.d4nilpzz.nzKoth.display.KothEditor;
+import dev.d4nilpzz.nzKoth.display.RewardsEditor;
 import dev.d4nilpzz.nzKoth.display.ScoreboardService;
 import dev.d4nilpzz.nzKoth.hook.PapiHook;
 import dev.d4nilpzz.nzKoth.koth.Koth;
@@ -39,6 +40,7 @@ public final class NzKoth extends JavaPlugin {
     private ScoreboardService scoreboards;
     private CrownDisplay crowns;
     private KothEditor editor;
+    private RewardsEditor rewardsEditor;
     private SchedulerService schedulers;
     private SchedulerEditor schedulerEditor;
     private LeaderboardService leaderboards;
@@ -78,6 +80,7 @@ public final class NzKoth extends JavaPlugin {
         scoreboards = new ScoreboardService(this);
         crowns = new CrownDisplay(this);
         editor = new KothEditor(this);
+        rewardsEditor = new RewardsEditor(this);
         wands = new WandService(this);
         starters = new StarterService(this);
 
@@ -92,6 +95,7 @@ public final class NzKoth extends JavaPlugin {
         getServer().getPluginManager().registerEvents(wands, this);
         getServer().getPluginManager().registerEvents(starters, this);
         getServer().getPluginManager().registerEvents(editor, this);
+        getServer().getPluginManager().registerEvents(rewardsEditor, this);
         getServer().getPluginManager().registerEvents(schedulerEditor, this);
         getServer().getPluginManager().registerEvents(scoreboards, this);
 
@@ -180,6 +184,10 @@ public final class NzKoth extends JavaPlugin {
 
     public @NotNull KothEditor editor() {
         return editor;
+    }
+
+    public @NotNull RewardsEditor rewardsEditor() {
+        return rewardsEditor;
     }
 
     public @NotNull SchedulerService schedulers() {

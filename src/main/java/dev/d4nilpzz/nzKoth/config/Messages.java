@@ -10,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,10 +31,16 @@ public final class Messages {
             plugin.saveResource("messages.yml", false);
         }
         yaml = YamlConfiguration.loadConfiguration(file);
+        InputStream defaults = plugin.getResource("messages.yml");
+        if (defaults != null) {
+            yaml.setDefaults(YamlConfiguration.loadConfiguration(
+                    new InputStreamReader(defaults, StandardCharsets.UTF_8)));
+        }
     }
 
     public @NotNull String raw(@NotNull String key) {
-        return yaml.getString(key, key);
+        String value = yaml.getString(key);
+        return value == null ? key : value;
     }
 
     public @NotNull Component get(@NotNull String key, @NotNull TagResolver... resolvers) {
