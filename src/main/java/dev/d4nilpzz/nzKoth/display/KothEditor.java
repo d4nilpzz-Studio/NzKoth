@@ -33,6 +33,8 @@ public final class KothEditor implements Listener {
     private static final int SLOT_BOSSBAR = 28;
     private static final int SLOT_BROADCAST = 29;
     private static final int SLOT_CROWN = 30;
+    private static final int SLOT_HOLOGRAM = 31;
+    private static final int SLOT_VIEW_DISTANCE = 32;
     private static final int SLOT_CROWN_OUTLINE = 33;
     private static final int SLOT_CROWN_MODEL = 34;
     private static final int SLOT_CROWN_GLOW = 37;
@@ -83,6 +85,9 @@ public final class KothEditor implements Listener {
                 Placeholder.unparsed("value", String.valueOf(koth.maxTime().toSeconds()))));
         inventory.setItem(SLOT_BOSSBAR, toggle(koth.bossBarEnabled(), "editor.bossbar"));
         inventory.setItem(SLOT_BROADCAST, toggle(koth.broadcastEnabled(), "editor.broadcast"));
+        inventory.setItem(SLOT_HOLOGRAM, toggle(koth.hologramEnabled(), "editor.hologram"));
+        inventory.setItem(SLOT_VIEW_DISTANCE, item(Material.ENDER_EYE, "editor.view-distance",
+                Placeholder.unparsed("value", String.valueOf(koth.viewDistance()))));
         inventory.setItem(SLOT_CROWN, toggle(koth.crownEnabled(), "editor.crown"));
         inventory.setItem(SLOT_CROWN_MODEL, item(Material.GOLDEN_HELMET, "editor.crown-model",
                 Placeholder.unparsed("value", String.valueOf(koth.crownCustomModelData()))));
@@ -96,7 +101,8 @@ public final class KothEditor implements Listener {
                 Placeholder.unparsed("value", String.format(Locale.ROOT, "%.1f", koth.crownHeight()))));
         inventory.setItem(SLOT_REWARDS, item(Material.CHEST, "editor.rewards",
                 Placeholder.unparsed("commands", String.valueOf(koth.rewards().commands().size())),
-                Placeholder.unparsed("broadcast", String.valueOf(koth.rewards().broadcastCommands().size()))));
+                Placeholder.unparsed("broadcast", String.valueOf(koth.rewards().broadcastCommands().size())),
+                Placeholder.unparsed("items", String.valueOf(koth.rewards().items().size()))));
         Menus.fillEmpty(inventory);
     }
 
@@ -157,6 +163,13 @@ public final class KothEditor implements Listener {
                     Duration.ofSeconds(Math.max(1, koth.maxTime().toSeconds() + delta)));
             case SLOT_BOSSBAR -> koth.bossBarEnabled(!koth.bossBarEnabled());
             case SLOT_BROADCAST -> koth.broadcastEnabled(!koth.broadcastEnabled());
+            case SLOT_HOLOGRAM -> koth.hologramEnabled(!koth.hologramEnabled());
+            case SLOT_VIEW_DISTANCE -> {
+                if (delta == 0) {
+                    return;
+                }
+                koth.viewDistance(Math.max(-1, koth.viewDistance() + delta));
+            }
             case SLOT_CROWN -> koth.crownEnabled(!koth.crownEnabled());
             case SLOT_CROWN_MODEL -> koth.crownCustomModelData(
                     Math.max(0, koth.crownCustomModelData() + delta));

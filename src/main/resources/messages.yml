@@ -75,6 +75,10 @@ editor:
     name: '<yellow>Boss bar'
     lore:
       - '<gray>Current: <white><value>'
+  hologram:
+    name: '<yellow>Hologram'
+    lore:
+      - '<gray>Current: <white><value>'
   broadcast:
     name: '<yellow>Broadcasts'
     lore:
@@ -105,6 +109,20 @@ editor:
       - '<gray>Color: <white><color>'
       - '<gray>Left click <dark_gray>- <white>toggle'
       - '<gray>Right click <dark_gray>- <white>next color'
+  view-distance:
+    name: '<gold><bold>Chat Broadcast Distance</bold>'
+    lore:
+      - ''
+      - '<white>[<red>-1<white>] <white>- everyone in the same world can see it'
+      - '<white>[<red>0<white>] <white>- everyone on the server can see it'
+      - '<white>[<gold>1 or higher<white>] <white>- actual distance'
+      - ''
+      - '<gold>> <yellow>Current value: <white><value> blocks'
+      - ''
+      - '<red>Left Click <white>- <green>+1'
+      - '<red>Right Click <white>- <red>-1'
+      - '<red>Shift + Left Click <white>- <green>+10'
+      - '<red>Shift + Right Click <white>- <red>-10'
   crown-height:
     name: '<yellow>Crown height'
     lore:
@@ -115,64 +133,179 @@ editor:
     lore:
       - '<gray>Commands: <white><commands>'
       - '<gray>Broadcast commands: <white><broadcast>'
+      - '<gray>Items: <white><items>'
       - ''
       - '<gray>Click to edit'
 
+menu:
+  back:
+    name: '<white>Back'
+    lore: []
+
+chat-input:
+  separator: '<dark_gray><st>                                        </st>'
+  cancel: '<gray>Type <red>cancel <gray>to go back.'
+
 rewards:
-  title: '<dark_gray>Rewards <gray>- <white><koth>'
-  prompt-add: '<gray>Type the command in chat without <white>/<gray>. Use <white>%<white>player%<gray> for the winner, or type <white>cancel<gray>.'
-  prompt-edit: '<gray>Type the new command in chat without <white>/<gray>, or type <white>cancel<gray>.'
+  title: '<white>Rewards: <gold><koth>'
+  shift-confirm: '<red>Shift+click to confirm.'
+  prompt-command: '<aqua>Type the command <gray>(no /, <white>%<white>player% <gray>= the winner):'
+  prompt-broadcast: '<aqua>Type the broadcast command <gray>(no /, <white>%<white>player% <gray>= the winner):'
   current: '<gray>Current: <white><command> <dark_gray>(click to copy)'
-  saved: '<green>Reward saved: <white><command>'
-  cancelled: '<gray>Cancelled.'
-  full: '<red>This koth already has the maximum number of rewards.'
-  command:
-    name: '<yellow>Command #<number>'
+  item:
     lore:
-      - '<white><command>'
       - ''
-      - '<gray>Left click <dark_gray>- <white>edit'
-      - '<gray>Right click <dark_gray>- <white>make broadcast command'
-      - '<gray>Shift + left <dark_gray>- <white>move up'
-      - '<gray>Shift + right <dark_gray>- <red>delete'
+      - '<dark_gray>▪ <gray>Chance: <yellow><chance>%'
+      - '<dark_gray>▪ <gray>Amount: <white><amount>'
+    message: '<dark_gray>▪ <gray>Message: <reset><message>'
+    controls:
+      - ''
+      - '<yellow>» Click: <gray>edit   <dark_gray>|   <red>Shift+right: <gray>delete'
+  command:
+    name: '<light_purple>Command #<number>'
+    lore:
+      - ''
+      - '<dark_gray>▪ <white>/<command>'
+      - '<dark_gray>▪ <gray>Always runs for the winner'
+      - ''
+      - '<yellow>» Click: <gray>edit   <dark_gray>|   <yellow>Right: <gray>make broadcast'
+      - '<red>Shift+right: <gray>delete'
   broadcast-command:
     name: '<aqua>Broadcast command #<number>'
     lore:
-      - '<white><command>'
       - ''
-      - '<gray>Left click <dark_gray>- <white>edit'
-      - '<gray>Right click <dark_gray>- <white>make normal command'
-      - '<gray>Shift + left <dark_gray>- <white>move up'
-      - '<gray>Shift + right <dark_gray>- <red>delete'
-  back:
-    name: '<yellow>Back'
-    lore:
-      - '<gray>Return to the koth editor'
+      - '<dark_gray>▪ <white>/<command>'
+      - '<dark_gray>▪ <gray>Always runs, meant for announcements'
+      - ''
+      - '<yellow>» Click: <gray>edit   <dark_gray>|   <yellow>Right: <gray>make normal'
+      - '<red>Shift+right: <gray>delete'
   add-command:
-    name: '<green><bold>Add command</bold>'
+    name: '<light_purple>Add command'
     lore:
-      - '<gray>Runs from console for the winner'
+      - '<gray>Runs a command from the console.'
+      - '<white>%<white>player% <gray>= the winner.'
+      - ''
+      - '<yellow>» Click: <gray>type command'
   add-broadcast:
-    name: '<aqua><bold>Add broadcast command</bold>'
+    name: '<aqua>Add broadcast command'
     lore:
-      - '<gray>Runs from console, meant for'
-      - '<gray>announcements to everyone'
+      - '<gray>Runs from the console, meant for'
+      - '<gray>announcements to everyone.'
+      - ''
+      - '<yellow>» Click: <gray>type command'
   help:
-    name: '<gold>Placeholders'
+    name: '<gold>How to add loot'
     lore:
-      - '<white>%<white>player% <dark_gray>- <gray>winner name'
-      - '<white>{player} <dark_gray>- <gray>winner name'
+      - '<gray>Rewards: <white><rewards>'
+      - '<gray>Average items per win: <white><average>'
+      - ''
+      - '<yellow>» Drop an item <gray>on an empty slot,'
+      - '<yellow>» or click <gray>an item in your inventory.'
+      - '<dark_gray>The item is copied, not taken.'
+      - ''
+      - '<gray>On each item:'
+      - '<yellow> Left click: <gray>edit'
+      - '<yellow> Right / Shift+left: <gray>-5% / +5%'
+      - '<yellow> Shift+right: <gray>delete'
+  previous-page:
+    name: '<white>Previous page'
+    lore:
+      - '<gray>Page <page>/<pages>'
+  next-page:
+    name: '<white>Next page'
+    lore:
+      - '<gray>Page <page>/<pages>'
+  delete-all:
+    name: '<dark_red>Delete all'
+    lore:
+      - '<gray>Removes every reward.'
+      - ''
+      - '<red>» Shift+click: <gray>delete'
 
-scoreboard:
-  title: '<gradient:#ff4d4d:#ffb84d><bold><koth></bold></gradient>'
-  lines:
-    - '<dark_gray><st>          </st>'
-    - '<gray>Mode: <white><mode>'
-    - '<gray>Status: <white><status>'
-    - '<gray>Leader: <white><leader>'
-    - '<gray>Score: <white><score>'
-    - '<gray>Time: <yellow><time>'
-    - '<dark_gray><st>          </st>'
+item-editor:
+  title: '<white>Reward <gold>#<number> <gray>- <white><koth>'
+  invalid: '<red>Invalid value.'
+  prompt-chance: '<aqua>Type the chance <gray>(0-100, e.g. <white>12.5<gray>):'
+  prompt-min: '<aqua>Type the min:'
+  prompt-max: '<aqua>Type the max:'
+  prompt-amount: '<aqua>Type the amount or range <gray>(e.g. <white>3 <gray>or <white>1-4<gray>):'
+  prompt-message: '<aqua>Type the message <gray>(<white>%<white>reward% <gray>= what they won):'
+  message-none: '<dark_gray>none'
+  preview:
+    lore:
+      - ''
+      - '<dark_gray>Type: item'
+      - ''
+      - '<yellow>» Click holding an item:'
+      - '<gray>  replace the item'
+  chance:
+    name: '<yellow>Chance: <white><chance>%'
+    lore:
+      - '<gray>Every reward rolls its own %.'
+      - ''
+      - '<yellow>» Click: <gray>type value'
+  chance-minus-ten:
+    name: '<red>-10%'
+    lore:
+      - '<gray>Current: <white><chance>%'
+  chance-minus-one:
+    name: '<red>-1% <dark_gray>(shift: -0.1%)'
+    lore:
+      - '<gray>Current: <white><chance>%'
+  chance-plus-one:
+    name: '<green>+1% <dark_gray>(shift: +0.1%)'
+    lore:
+      - '<gray>Current: <white><chance>%'
+  chance-plus-ten:
+    name: '<green>+10%'
+    lore:
+      - '<gray>Current: <white><chance>%'
+  min-minus:
+    name: '<red>Min -<step>'
+    lore:
+      - '<dark_gray>Shift: -<shift-step>'
+  min:
+    name: '<white>Min: <yellow><min>'
+    lore:
+      - ''
+      - '<yellow>» Click: <gray>type it'
+  min-plus:
+    name: '<green>Min +<step>'
+    lore:
+      - '<dark_gray>Shift: +<shift-step>'
+  amount:
+    name: '<gold>Amount: <white><amount>'
+    lore:
+      - '<gray>A random amount between'
+      - '<gray>min and max is given.'
+      - ''
+      - '<yellow>» Click: <gray>type range <dark_gray>(e.g. 1-4)'
+  max-minus:
+    name: '<red>Max -<step>'
+    lore:
+      - '<dark_gray>Shift: -<shift-step>'
+  max:
+    name: '<white>Max: <yellow><max>'
+    lore:
+      - ''
+      - '<yellow>» Click: <gray>type it'
+  max-plus:
+    name: '<green>Max +<step>'
+    lore:
+      - '<dark_gray>Shift: +<shift-step>'
+  message:
+    name: '<gold>Win message'
+    lore:
+      - '<gray>Current: <reset><message>'
+      - '<dark_gray>%<dark_gray>reward% = what they won'
+      - ''
+      - '<yellow>» Left click: <gray>change'
+      - '<yellow>» Right click: <gray>remove'
+  delete:
+    name: '<dark_red>Delete reward'
+    lore:
+      - ''
+      - '<red>» Shift+click: <gray>delete'
 
 leaderboard:
   header: '<gray>Top players <dark_gray>(<white><board><dark_gray>):'

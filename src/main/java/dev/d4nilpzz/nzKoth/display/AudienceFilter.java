@@ -25,8 +25,12 @@ public final class AudienceFilter {
         Location center = region.center();
         int distance = koth.viewDistance();
         double squared = distance > 0 ? (double) distance * distance : -1.0;
+        boolean sameWorld = distance < 0;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
+            if (sameWorld && !player.getWorld().equals(center.getWorld())) {
+                continue;
+            }
             if (!canSee(player, koth, center, squared)) {
                 continue;
             }

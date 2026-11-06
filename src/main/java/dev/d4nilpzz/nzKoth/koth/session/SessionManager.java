@@ -7,13 +7,17 @@ import dev.d4nilpzz.nzKoth.api.event.KothEndEvent;
 import dev.d4nilpzz.nzKoth.api.event.KothStartEvent;
 import dev.d4nilpzz.nzKoth.display.AudienceFilter;
 import dev.d4nilpzz.nzKoth.display.BossBarService;
+import dev.d4nilpzz.nzKoth.koth.ItemReward;
 import dev.d4nilpzz.nzKoth.koth.Koth;
 import dev.d4nilpzz.nzKoth.koth.KothMode;
+import dev.d4nilpzz.nzKoth.text.Text;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -200,6 +204,32 @@ public final class SessionManager {
         }
         for (String command : koth.rewards().broadcastCommands()) {
             dispatch(command, winner.getName());
+        }
+        for (ItemReward reward : koth.rewards().items()) {
+            if (!reward.roll()) {
+                continue;
+            }
+            int amount = reward.rollAmount();
+            give(winner, reward.item(), amount);
+            if (reward.message() != null) {
+                winner.sendMessage(Text.parse(winner, reward.message().replace("%reward%", "<reward>"),
+                        Placeholder.component("reward", reward.item().displayName()
+                                .append(Component.text(" x" + amount)))));
+            }
+        }
+    }
+
+    private void give(@NotNull Player winner, @NotNull ItemStack template, int amount) {
+        int maxStack = Math.max(1, template.getMaxStackSize());
+        int remaining = amount;
+        while (remaining > 0) {
+            ItemStack stack = template.clone();
+            int size = Math.min(maxStack, remaining);
+            stack.setAmount(size);
+            remaining -= size;
+            for (ItemStack leftover : winner.getInventory().addItem(stack).values()) {
+                winner.getWorld().dropItemNaturally(winner.getLocation(), leftover);
+            }
         }
     }
 

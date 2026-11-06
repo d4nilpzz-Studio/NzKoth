@@ -44,3 +44,82 @@ webhooks:
     capture-stop: '**%koth%** is no longer being captured'
     capture: '%player% has won **%koth%**'
     end: '**%koth%** ended with no winner'
+
+# Placeholders available in the scoreboard and the active hologram:
+# <koth> <display-name> <mode> <status> <controller> <leader> <score> <target>
+# <time> <progress> <bar>
+# The idle hologram supports: <koth> <display-name> <mode> <next> <capture-time> <target>
+# PlaceholderAPI placeholders like %player_name% work too.
+
+placeholders:
+  none: '-'
+
+progress-bar:
+  length: 20
+  symbol: '|'
+  filled: '<green>'
+  empty: '<dark_gray>'
+
+scoreboard:
+  # Hides the red numbers on the right side of the sidebar
+  hide-numbers: true
+  title: '<gradient:#ff4d4d:#ffb84d><bold><koth></bold></gradient>'
+  lines:
+    capture:
+      - '<dark_gray><st>                    </st>'
+      - '<gray>Status: <white><status>'
+      - '<gray>Capturing: <white><controller>'
+      - ''
+      - '<gray>Time left: <yellow><time>'
+      - '<bar>'
+      - '<dark_gray><st>                    </st>'
+    score:
+      - '<dark_gray><st>                    </st>'
+      - '<gray>Status: <white><status>'
+      - '<gray>Leader: <white><leader>'
+      - '<gray>Score: <yellow><score><gray>/<white><target>'
+      - ''
+      - '<gray>Time left: <yellow><time>'
+      - '<dark_gray><st>                    </st>'
+
+hologram:
+  enabled: true
+  update-ticks: 20
+  # Blocks above the highest block at the center of the koth
+  height: 1.0
+  # CENTER faces the player, FIXED, VERTICAL or HORIZONTAL
+  billboard: CENTER
+  alignment: CENTER
+  scale: 1.2
+  shadow: true
+  see-through: false
+  # ARGB hex like '#40000000', 'none' for no background or 'default' for the vanilla one
+  background: 'none'
+  line-width: 250
+  # Multiplier of the default view distance (1.0 = 64 blocks)
+  view-range: 1.5
+  full-bright: true
+  not-scheduled: 'Not scheduled'
+  idle:
+    enabled: true
+    lines:
+      - '<gradient:#ff4d4d:#ffb84d><bold>⚔ <display-name> ⚔</bold></gradient>'
+      - '<gray>King of the Hill'
+      - ''
+      - '<gray>Mode: <white><mode>'
+      - '<gray>Next event: <yellow><next>'
+  lines:
+    capture:
+      - '<gradient:#ff4d4d:#ffb84d><bold>⚔ <display-name> ⚔</bold></gradient>'
+      - '<green><bold>ACTIVE</bold>'
+      - ''
+      - '<gray>Capturing: <white><controller>'
+      - '<gray>Time left: <yellow><time>'
+      - '<bar>'
+    score:
+      - '<gradient:#ff4d4d:#ffb84d><bold>⚔ <display-name> ⚔</bold></gradient>'
+      - '<green><bold>ACTIVE</bold>'
+      - ''
+      - '<gray>Leader: <white><leader>'
+      - '<gray>Score: <yellow><score><gray>/<white><target>'
+      - '<gray>Time left: <yellow><time>'

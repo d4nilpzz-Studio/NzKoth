@@ -9,6 +9,7 @@ public final class Rewards {
 
     private final List<String> commands = new ArrayList<>();
     private final List<String> broadcastCommands = new ArrayList<>();
+    private final List<ItemReward> items = new ArrayList<>();
 
     public @NotNull List<String> commands() {
         return commands;
@@ -16,6 +17,19 @@ public final class Rewards {
 
     public @NotNull List<String> broadcastCommands() {
         return broadcastCommands;
+    }
+
+    public @NotNull List<ItemReward> items() {
+        return items;
+    }
+
+    public void items(@NotNull List<ItemReward> value) {
+        items.clear();
+        items.addAll(value);
+    }
+
+    public int size() {
+        return commands.size() + broadcastCommands.size() + items.size();
     }
 
     public void commands(@NotNull List<String> value) {
@@ -29,6 +43,6 @@ public final class Rewards {
     }
 
     public boolean isEmpty() {
-        return commands.isEmpty() && broadcastCommands.isEmpty();
+        return commands.isEmpty() && broadcastCommands.isEmpty() && items.isEmpty();
     }
 }

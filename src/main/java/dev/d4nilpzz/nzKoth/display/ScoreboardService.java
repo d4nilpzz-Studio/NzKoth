@@ -3,11 +3,10 @@ package dev.d4nilpzz.nzKoth.display;
 import dev.d4nilpzz.nzKoth.NzKoth;
 import dev.d4nilpzz.nzKoth.koth.Koth;
 import dev.d4nilpzz.nzKoth.koth.session.KothSession;
-import dev.d4nilpzz.nzKoth.koth.session.ScoreSession;
+import dev.d4nilpzz.nzKoth.text.Text;
+import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import dev.d4nilpzz.nzKoth.util.Cuboid;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,6 +14,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +28,11 @@ import java.util.UUID;
 public final class ScoreboardService implements Listener {
 
     private static final String OBJECTIVE_ID = "nzkoth";
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private final NzKoth plugin;
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
     private final Map<UUID, Scoreboard> previous = new HashMap<>();
-    private final Map<UUID, List<String>> lastLines = new HashMap<>();
+    private final Map<UUID, List<Component>> lastLines = new HashMap<>();
 
     public ScoreboardService(@NotNull NzKoth plugin) {
         this.plugin = plugin;
@@ -100,7 +99,7 @@ public final class ScoreboardService implements Listener {
     }
 
     private void apply(@NotNull Player player, @NotNull KothSession session) {
-        List<String> lines = renderLines(player, session);
+        List<Component> lines = renderLines(player, session);
         if (lines.isEmpty()) {
             restore(player.getUniqueId());
             return;
@@ -118,56 +117,37 @@ public final class ScoreboardService implements Listener {
         lastLines.put(player.getUniqueId(), lines);
 
         Objective objective = board.getObjective(OBJECTIVE_ID);
-        Component title = plugin.messages().get(player, "scoreboard.title",
-                Placeholder.unparsed("koth", session.koth().name()));
+        Component title = Text.parse(player,
+                plugin.getConfig().getString("scoreboard.title", "<koth>"),
+                KothPlaceholders.active(plugin, session, player));
         if (objective == null) {
             objective = board.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY, title);
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         } else {
             objective.displayName(title);
         }
+        objective.numberFormat(plugin.getConfig().getBoolean("scoreboard.hide-numbers", true)
+                ? NumberFormat.blank()
+                : null);
         for (String entry : new ArrayList<>(board.getEntries())) {
             board.resetScores(entry);
         }
         int score = lines.size();
-        for (String line : lines) {
-            objective.getScore(line).setScore(score--);
+        for (int index = 0; index < lines.size(); index++) {
+            Score line = objective.getScore(entryId(index));
+            line.setScore(score--);
+            line.customName(lines.get(index));
         }
     }
 
-    private @NotNull List<String> renderLines(@NotNull Player player, @NotNull KothSession session) {
-        Koth koth = session.koth();
-        String controller = session.controllerName();
-        if (koth.teamMode() && !controller.isEmpty()) {
-            Player holder = plugin.getServer().getPlayer(controller);
-            if (holder != null) {
-                controller = plugin.teams().displayNameOf(holder, true);
-            }
-        }
-        String leader = session instanceof ScoreSession scoreSession ? scoreSession.topName() : controller;
-        int topScore = session instanceof ScoreSession scoreSession ? scoreSession.topScore() : 0;
+    private @NotNull List<Component> renderLines(@NotNull Player player, @NotNull KothSession session) {
+        List<String> raw = plugin.getConfig().getStringList(
+                "scoreboard.lines." + KothPlaceholders.modeKey(session.koth()));
+        return Text.parse(player, raw, KothPlaceholders.active(plugin, session, player));
+    }
 
-        List<Component> rendered = plugin.messages().list(player, "scoreboard.lines",
-                Placeholder.unparsed("koth", koth.name()),
-                Placeholder.unparsed("mode", koth.mode().name()),
-                Placeholder.unparsed("status", session.statusLine()),
-                Placeholder.unparsed("controller", controller.isEmpty() ? "-" : controller),
-                Placeholder.unparsed("leader", leader.isEmpty() ? "-" : leader),
-                Placeholder.unparsed("score", String.valueOf(topScore)),
-                Placeholder.unparsed("time", BossBarService.formatTime(session.secondsLeft())),
-                Placeholder.unparsed("progress", String.valueOf(Math.round(session.progress() * 100.0))));
-
-        List<String> lines = new ArrayList<>(rendered.size());
-        StringBuilder unique = new StringBuilder();
-        for (Component component : rendered) {
-            String text = LEGACY.serialize(component);
-            if (text.length() > 40) {
-                text = text.substring(0, 40);
-            }
-            lines.add(text + unique);
-            unique.append('§').append('r');
-        }
-        return lines;
+    private static @NotNull String entryId(int index) {
+        return "§" + Integer.toHexString(index / 16) + "§" + Integer.toHexString(index % 16) + "§r";
     }
 
     private void restore(@NotNull UUID playerId) {

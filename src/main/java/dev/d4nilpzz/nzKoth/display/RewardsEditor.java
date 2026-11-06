@@ -1,252 +1,264 @@
 package dev.d4nilpzz.nzKoth.display;
 
 import dev.d4nilpzz.nzKoth.NzKoth;
+import dev.d4nilpzz.nzKoth.display.menu.BaseMenu;
+import dev.d4nilpzz.nzKoth.koth.ItemReward;
 import dev.d4nilpzz.nzKoth.koth.Koth;
-import io.papermc.paper.event.player.AsyncChatEvent;
+import dev.d4nilpzz.nzKoth.text.Text;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-public final class RewardsEditor implements Listener {
+public final class RewardsEditor {
 
-    private static final int SIZE = 54;
-    private static final int MAX_ENTRIES = 45;
-    private static final int BOTTOM_ROW = 45;
-    private static final int SLOT_BACK = 45;
-    private static final int SLOT_ADD_COMMAND = 48;
-    private static final int SLOT_HELP = 49;
-    private static final int SLOT_ADD_BROADCAST = 50;
+    private static final int PER_PAGE = 27;
+    private static final double DEFAULT_CHANCE = 100;
+    private static final double CHANCE_STEP = 5;
 
     private enum Kind {
         COMMAND,
-        BROADCAST
+        BROADCAST,
+        ITEM
     }
 
-    private record Entry(@NotNull Kind kind, int index, @NotNull String command) {
-    }
-
-    private record Pending(@NotNull Koth koth, @NotNull Kind kind, int index) {
-    }
-
-    private static final class RewardsMenu implements InventoryHolder {
-        private final Koth koth;
-        private Inventory inventory;
-
-        private RewardsMenu(@NotNull Koth koth) {
-            this.koth = koth;
-        }
-
-        @Override
-        public @NotNull Inventory getInventory() {
-            return inventory;
-        }
+    private record Entry(@NotNull Kind kind, int index) {
     }
 
     private final NzKoth plugin;
-    private final Map<UUID, Pending> pending = new ConcurrentHashMap<>();
 
     public RewardsEditor(@NotNull NzKoth plugin) {
         this.plugin = plugin;
     }
 
     public void open(@NotNull Player player, @NotNull Koth koth) {
-        RewardsMenu menu = new RewardsMenu(koth);
-        menu.inventory = plugin.getServer().createInventory(menu, SIZE,
-                plugin.messages().get("rewards.title", Placeholder.unparsed("koth", koth.name())));
-        render(menu);
-        player.openInventory(menu.inventory);
+        open(player, koth, 0);
+    }
+
+    public void open(@NotNull Player player, @NotNull Koth koth, int page) {
+        new LootMenu(koth, page).open(player);
     }
 
     private static @NotNull List<Entry> entries(@NotNull Koth koth) {
         List<Entry> out = new ArrayList<>();
-        List<String> commands = koth.rewards().commands();
-        for (int index = 0; index < commands.size(); index++) {
-            out.add(new Entry(Kind.COMMAND, index, commands.get(index)));
+        for (int index = 0; index < koth.rewards().commands().size(); index++) {
+            out.add(new Entry(Kind.COMMAND, index));
         }
-        List<String> broadcast = koth.rewards().broadcastCommands();
-        for (int index = 0; index < broadcast.size(); index++) {
-            out.add(new Entry(Kind.BROADCAST, index, broadcast.get(index)));
+        for (int index = 0; index < koth.rewards().broadcastCommands().size(); index++) {
+            out.add(new Entry(Kind.BROADCAST, index));
+        }
+        for (int index = 0; index < koth.rewards().items().size(); index++) {
+            out.add(new Entry(Kind.ITEM, index));
         }
         return out;
     }
 
-    private static @NotNull List<String> list(@NotNull Koth koth, @NotNull Kind kind) {
+    private static @NotNull List<String> commands(@NotNull Koth koth, @NotNull Kind kind) {
         return kind == Kind.COMMAND ? koth.rewards().commands() : koth.rewards().broadcastCommands();
     }
 
-    private void render(@NotNull RewardsMenu menu) {
-        Inventory inventory = menu.inventory;
-        inventory.clear();
-        List<Entry> entries = entries(menu.koth);
-        for (int slot = 0; slot < MAX_ENTRIES && slot < entries.size(); slot++) {
-            Entry entry = entries.get(slot);
-            boolean command = entry.kind() == Kind.COMMAND;
-            inventory.setItem(slot, item(command ? Material.PAPER : Material.BELL,
-                    command ? "rewards.command" : "rewards.broadcast-command",
-                    Placeholder.unparsed("number", String.valueOf(entry.index() + 1)),
-                    Placeholder.unparsed("command", entry.command())));
-        }
-        inventory.setItem(SLOT_BACK, item(Material.ARROW, "rewards.back"));
-        inventory.setItem(SLOT_ADD_COMMAND, item(Material.WRITABLE_BOOK, "rewards.add-command"));
-        inventory.setItem(SLOT_HELP, item(Material.BOOK, "rewards.help"));
-        inventory.setItem(SLOT_ADD_BROADCAST, item(Material.WRITABLE_BOOK, "rewards.add-broadcast"));
-        Menus.fill(inventory, BOTTOM_ROW, SIZE);
+    private void addItem(@NotNull Koth koth, @NotNull ItemStack item) {
+        koth.rewards().items().add(new ItemReward(item, DEFAULT_CHANCE, item.getAmount(), item.getAmount(), null));
+        plugin.koths().save(koth);
     }
 
-    private @NotNull ItemStack item(@NotNull Material material, @NotNull String key, TagResolver... resolvers) {
-        ItemStack stack = new ItemStack(material);
-        ItemMeta meta = stack.getItemMeta();
-        meta.displayName(plugin.messages().get(key + ".name", resolvers));
-        meta.lore(plugin.messages().list(null, key + ".lore", resolvers));
-        stack.setItemMeta(meta);
-        return stack;
-    }
+    private final class LootMenu extends BaseMenu {
 
-    @EventHandler
-    public void onDrag(@NotNull InventoryDragEvent event) {
-        if (event.getView().getTopInventory().getHolder() instanceof RewardsMenu) {
-            event.setCancelled(true);
-        }
-    }
+        private final Koth koth;
+        private final int page;
 
-    @EventHandler
-    public void onClick(@NotNull InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        Inventory top = event.getView().getTopInventory();
-        if (!(top.getHolder() instanceof RewardsMenu menu)) {
-            return;
-        }
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) {
-            return;
-        }
-        Koth koth = menu.koth;
-        int slot = event.getSlot();
-        switch (slot) {
-            case SLOT_BACK -> {
-                plugin.editor().open(player, koth);
-                return;
-            }
-            case SLOT_ADD_COMMAND -> {
-                prompt(player, new Pending(koth, Kind.COMMAND, -1), null);
-                return;
-            }
-            case SLOT_ADD_BROADCAST -> {
-                prompt(player, new Pending(koth, Kind.BROADCAST, -1), null);
-                return;
-            }
-            default -> {
-            }
+        private LootMenu(@NotNull Koth koth, int page) {
+            super(RewardsEditor.this.plugin, RewardsEditor.this.plugin.messages().get("rewards.title",
+                    Placeholder.unparsed("koth", koth.name())));
+            this.koth = koth;
+            this.page = page;
         }
 
-        List<Entry> entries = entries(koth);
-        if (slot >= MAX_ENTRIES || slot >= entries.size()) {
-            return;
-        }
-        Entry entry = entries.get(slot);
-        List<String> source = list(koth, entry.kind());
-        ClickType click = event.getClick();
-        switch (click) {
-            case LEFT -> {
-                prompt(player, new Pending(koth, entry.kind(), entry.index()), entry.command());
-                return;
+        @Override
+        protected void render() {
+            List<Entry> entries = entries(koth);
+            int pages = Math.max(1, (entries.size() + 1 + PER_PAGE - 1) / PER_PAGE);
+            int current = Math.max(0, Math.min(page, pages - 1));
+
+            for (int i = 0; i < PER_PAGE; i++) {
+                int index = current * PER_PAGE + i;
+                if (index >= entries.size()) {
+                    break;
+                }
+                Entry entry = entries.get(index);
+                if (entry.kind() == Kind.ITEM) {
+                    renderItem(i, entry.index());
+                } else {
+                    renderCommand(i, entry, current);
+                }
             }
-            case RIGHT -> {
-                source.remove(entry.index());
-                list(koth, entry.kind() == Kind.COMMAND ? Kind.BROADCAST : Kind.COMMAND).add(entry.command());
-            }
-            case SHIFT_LEFT -> {
-                if (entry.index() == 0) {
+
+            backButton(36, (player, click, cursor) -> plugin.editor().open(player, koth));
+            pageButton(37, "rewards.previous-page", current - 1, pages);
+
+            set(39, icon(Material.COMMAND_BLOCK, "rewards.add-command"),
+                    (player, click, cursor) -> askCommand(player, Kind.COMMAND, -1, current));
+
+            double total = koth.rewards().items().stream().mapToDouble(ItemReward::chance).sum();
+            set(40, icon(Material.KNOWLEDGE_BOOK, "rewards.help",
+                    Placeholder.unparsed("rewards", String.valueOf(entries.size())),
+                    Placeholder.unparsed("average", ItemReward.number(Math.round(total) / 100.0))));
+
+            set(41, icon(Material.BELL, "rewards.add-broadcast"),
+                    (player, click, cursor) -> askCommand(player, Kind.BROADCAST, -1, current));
+
+            pageButton(43, "rewards.next-page", current + 1, pages);
+
+            set(44, icon(Material.LAVA_BUCKET, "rewards.delete-all"), (player, click, cursor) -> {
+                if (!click.isShiftClick()) {
+                    player.sendMessage(plugin.messages().get(player, "rewards.shift-confirm"));
+                    deny(player);
                     return;
                 }
-                source.set(entry.index(), source.get(entry.index() - 1));
-                source.set(entry.index() - 1, entry.command());
+                koth.rewards().commands(List.of());
+                koth.rewards().broadcastCommands(List.of());
+                koth.rewards().items(List.of());
+                plugin.koths().save(koth);
+                deny(player);
+                refresh();
+            });
+        }
+
+        private void renderItem(int slot, int index) {
+            ItemReward reward = koth.rewards().items().get(index);
+            ItemStack base = reward.item().clone();
+            base.setAmount(Math.max(1, Math.min(99, reward.minAmount())));
+            List<Component> lore = new ArrayList<>(plugin.messages().list(null, "rewards.item.lore",
+                    Placeholder.unparsed("chance", reward.chanceText()),
+                    Placeholder.unparsed("amount", reward.amountText())));
+            if (reward.message() != null) {
+                lore.add(plugin.messages().get("rewards.item.message",
+                        Placeholder.component("message", Text.parse(reward.message()))));
             }
-            case SHIFT_RIGHT -> source.remove(entry.index());
-            default -> {
+            lore.addAll(plugin.messages().list(null, "rewards.item.controls"));
+            set(slot, withLore(base, lore), (player, click, cursor) -> {
+                List<ItemReward> items = koth.rewards().items();
+                if (index >= items.size()) {
+                    refresh();
+                    return;
+                }
+                if (click == ClickType.SHIFT_RIGHT) {
+                    items.remove(index);
+                    plugin.koths().save(koth);
+                    deny(player);
+                    refresh();
+                    return;
+                }
+                if (click == ClickType.RIGHT || click == ClickType.SHIFT_LEFT) {
+                    double step = click == ClickType.RIGHT ? -CHANCE_STEP : CHANCE_STEP;
+                    items.set(index, reward.withChance(reward.chance() + step));
+                    plugin.koths().save(koth);
+                    click(player);
+                    refresh();
+                    return;
+                }
+                click(player);
+                plugin.itemRewardEditor().open(player, koth, index);
+            });
+        }
+
+        private void renderCommand(int slot, @NotNull Entry entry, int current) {
+            boolean broadcast = entry.kind() == Kind.BROADCAST;
+            String command = commands(koth, entry.kind()).get(entry.index());
+            String key = broadcast ? "rewards.broadcast-command" : "rewards.command";
+            set(slot, icon(broadcast ? Material.BELL : Material.COMMAND_BLOCK, key,
+                            Placeholder.unparsed("number", String.valueOf(entry.index() + 1)),
+                            Placeholder.unparsed("command", command)),
+                    (player, click, cursor) -> {
+                        List<String> source = commands(koth, entry.kind());
+                        if (entry.index() >= source.size()) {
+                            refresh();
+                            return;
+                        }
+                        if (click == ClickType.SHIFT_RIGHT) {
+                            source.remove(entry.index());
+                            plugin.koths().save(koth);
+                            deny(player);
+                            refresh();
+                            return;
+                        }
+                        if (click == ClickType.RIGHT) {
+                            source.remove(entry.index());
+                            commands(koth, broadcast ? Kind.COMMAND : Kind.BROADCAST).add(command);
+                            plugin.koths().save(koth);
+                            click(player);
+                            refresh();
+                            return;
+                        }
+                        askCommand(player, entry.kind(), entry.index(), current);
+                    });
+        }
+
+        private void pageButton(int slot, @NotNull String key, int target, int pages) {
+            if (target < 0 || target >= pages) {
                 return;
             }
+            set(slot, icon(Material.SPECTRAL_ARROW, key,
+                            Placeholder.unparsed("page", String.valueOf(target + 1)),
+                            Placeholder.unparsed("pages", String.valueOf(pages))),
+                    (player, click, cursor) -> {
+                        click(player);
+                        RewardsEditor.this.open(player, koth, target);
+                    });
         }
-        plugin.koths().save(koth);
-        render(menu);
-    }
 
-    private void prompt(@NotNull Player player, @NotNull Pending request, @Nullable String current) {
-        if (request.index() < 0 && entries(request.koth()).size() >= MAX_ENTRIES) {
-            player.sendMessage(plugin.messages().get(player, "rewards.full"));
-            return;
+        private void askCommand(@NotNull Player player, @NotNull Kind kind, int index, int current) {
+            click(player);
+            List<String> source = commands(koth, kind);
+            String key = kind == Kind.BROADCAST ? "rewards.prompt-broadcast" : "rewards.prompt-command";
+            plugin.chatInput().ask(player, plugin.messages().get(player, key), text -> {
+                String command = text.startsWith("/") ? text.substring(1).trim() : text;
+                List<String> target = commands(koth, kind);
+                if (index >= 0 && index < target.size()) {
+                    target.set(index, command);
+                } else {
+                    target.add(command);
+                }
+                plugin.koths().save(koth);
+                success(player);
+                RewardsEditor.this.open(player, koth, current);
+            }, () -> RewardsEditor.this.open(player, koth, current));
+            if (index >= 0 && index < source.size()) {
+                String existing = source.get(index);
+                player.sendMessage(plugin.messages().get(player, "rewards.current",
+                                Placeholder.unparsed("command", existing))
+                        .clickEvent(ClickEvent.suggestCommand(existing)));
+            }
         }
-        pending.put(player.getUniqueId(), request);
-        player.closeInventory();
-        player.sendMessage(plugin.messages().get(player,
-                request.index() < 0 ? "rewards.prompt-add" : "rewards.prompt-edit"));
-        if (current != null) {
-            player.sendMessage(plugin.messages().get(player, "rewards.current",
-                            Placeholder.unparsed("command", current))
-                    .clickEvent(ClickEvent.suggestCommand(current)));
-        }
-    }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onChat(@NotNull AsyncChatEvent event) {
-        Player player = event.getPlayer();
-        Pending request = pending.remove(player.getUniqueId());
-        if (request == null) {
-            return;
+        @Override
+        protected boolean keepEmpty(int slot) {
+            return slot < PER_PAGE;
         }
-        event.setCancelled(true);
-        String input = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
-        plugin.getServer().getScheduler().runTask(plugin, () -> apply(player, request, input));
-    }
 
-    private void apply(@NotNull Player player, @NotNull Pending request, @NotNull String input) {
-        if (!player.isOnline()) {
-            return;
+        @Override
+        protected void handleEmptyClick(@NotNull Player player, int slot, @NotNull ClickType click,
+                                        @Nullable ItemStack cursor) {
+            if (slot < PER_PAGE && cursor != null) {
+                addItem(koth, cursor);
+                success(player);
+                refresh();
+            }
         }
-        String command = input.startsWith("/") ? input.substring(1).trim() : input;
-        if (input.equalsIgnoreCase("cancel") || command.isEmpty()) {
-            player.sendMessage(plugin.messages().get(player, "rewards.cancelled"));
-            open(player, request.koth());
-            return;
-        }
-        List<String> target = list(request.koth(), request.kind());
-        if (request.index() >= 0 && request.index() < target.size()) {
-            target.set(request.index(), command);
-        } else {
-            target.add(command);
-        }
-        plugin.koths().save(request.koth());
-        player.sendMessage(plugin.messages().get(player, "rewards.saved",
-                Placeholder.unparsed("command", command)));
-        open(player, request.koth());
-    }
 
-    @EventHandler
-    public void onQuit(@NotNull PlayerQuitEvent event) {
-        pending.remove(event.getPlayer().getUniqueId());
+        @Override
+        public void handleInventoryClick(@NotNull Player player, @NotNull ItemStack clicked, @NotNull ClickType click) {
+            addItem(koth, clicked);
+            success(player);
+            refresh();
+        }
     }
 }

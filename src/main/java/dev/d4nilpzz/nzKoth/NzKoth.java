@@ -6,8 +6,12 @@ import dev.d4nilpzz.nzKoth.config.Messages;
 import dev.d4nilpzz.nzKoth.config.Settings;
 import dev.d4nilpzz.nzKoth.display.BossBarService;
 import dev.d4nilpzz.nzKoth.display.CrownDisplay;
+import dev.d4nilpzz.nzKoth.display.HologramService;
+import dev.d4nilpzz.nzKoth.display.ItemRewardEditor;
 import dev.d4nilpzz.nzKoth.display.KothEditor;
 import dev.d4nilpzz.nzKoth.display.RewardsEditor;
+import dev.d4nilpzz.nzKoth.display.menu.ChatInput;
+import dev.d4nilpzz.nzKoth.display.menu.MenuListener;
 import dev.d4nilpzz.nzKoth.display.ScoreboardService;
 import dev.d4nilpzz.nzKoth.hook.PapiHook;
 import dev.d4nilpzz.nzKoth.koth.Koth;
@@ -41,6 +45,9 @@ public final class NzKoth extends JavaPlugin {
     private CrownDisplay crowns;
     private KothEditor editor;
     private RewardsEditor rewardsEditor;
+    private ItemRewardEditor itemRewardEditor;
+    private ChatInput chatInput;
+    private HologramService holograms;
     private SchedulerService schedulers;
     private SchedulerEditor schedulerEditor;
     private LeaderboardService leaderboards;
@@ -80,7 +87,9 @@ public final class NzKoth extends JavaPlugin {
         scoreboards = new ScoreboardService(this);
         crowns = new CrownDisplay(this);
         editor = new KothEditor(this);
+        chatInput = new ChatInput(this);
         rewardsEditor = new RewardsEditor(this);
+        itemRewardEditor = new ItemRewardEditor(this);
         wands = new WandService(this);
         starters = new StarterService(this);
 
@@ -92,10 +101,14 @@ public final class NzKoth extends JavaPlugin {
         schedulers.start();
         schedulerEditor = new SchedulerEditor(this);
 
+        holograms = new HologramService(this);
+        holograms.start();
+
         getServer().getPluginManager().registerEvents(wands, this);
         getServer().getPluginManager().registerEvents(starters, this);
         getServer().getPluginManager().registerEvents(editor, this);
-        getServer().getPluginManager().registerEvents(rewardsEditor, this);
+        getServer().getPluginManager().registerEvents(chatInput, this);
+        getServer().getPluginManager().registerEvents(new MenuListener(), this);
         getServer().getPluginManager().registerEvents(schedulerEditor, this);
         getServer().getPluginManager().registerEvents(scoreboards, this);
 
@@ -122,6 +135,9 @@ public final class NzKoth extends JavaPlugin {
         }
         if (crowns != null) {
             crowns.hideAll();
+        }
+        if (holograms != null) {
+            holograms.stop();
         }
         if (bossBars != null) {
             bossBars.removeAll();
@@ -152,6 +168,7 @@ public final class NzKoth extends JavaPlugin {
         webhooks.load();
         leaderboards.load();
         schedulers.load();
+        holograms.start();
     }
 
     public @NotNull Settings settings() {
@@ -188,6 +205,18 @@ public final class NzKoth extends JavaPlugin {
 
     public @NotNull RewardsEditor rewardsEditor() {
         return rewardsEditor;
+    }
+
+    public @NotNull ItemRewardEditor itemRewardEditor() {
+        return itemRewardEditor;
+    }
+
+    public @NotNull HologramService holograms() {
+        return holograms;
+    }
+
+    public @NotNull ChatInput chatInput() {
+        return chatInput;
     }
 
     public @NotNull SchedulerService schedulers() {

@@ -24,6 +24,7 @@ public final class Koth {
 
     private boolean bossBarEnabled = true;
     private boolean scoreboardEnabled = true;
+    private boolean hologramEnabled = true;
     private boolean broadcastEnabled = true;
     private int viewDistance = -1;
     private boolean sameWorldOnly = false;
@@ -143,6 +144,14 @@ public final class Koth {
 
     public void scoreboardEnabled(boolean value) {
         this.scoreboardEnabled = value;
+    }
+
+    public boolean hologramEnabled() {
+        return hologramEnabled;
+    }
+
+    public void hologramEnabled(boolean value) {
+        this.hologramEnabled = value;
     }
 
     public boolean broadcastEnabled() {
