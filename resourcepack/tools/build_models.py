@@ -6,7 +6,8 @@ import sys
 import zlib
 
 NAMESPACE = "nzkoth"
-BASE_ITEM = "golden_helmet"
+BASE_ITEM = "netherite_sword"
+BASE_PARENT = "handheld"
 FRONT_Z = 7.5
 BACK_Z = 8.5
 LIGHT_EMISSION = 15
@@ -200,7 +201,7 @@ def modern_definition(mapping):
 
 def legacy_definition(mapping):
     return {
-        "parent": "minecraft:item/generated",
+        "parent": "minecraft:item/" + BASE_PARENT,
         "textures": {"layer0": "minecraft:item/" + BASE_ITEM},
         "overrides": [{
             "predicate": {"custom_model_data": value},

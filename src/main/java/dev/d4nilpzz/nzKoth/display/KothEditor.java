@@ -89,8 +89,7 @@ public final class KothEditor implements Listener {
         inventory.setItem(SLOT_VIEW_DISTANCE, item(Material.ENDER_EYE, "editor.view-distance",
                 Placeholder.unparsed("value", String.valueOf(koth.viewDistance()))));
         inventory.setItem(SLOT_CROWN, toggle(koth.crownEnabled(), "editor.crown"));
-        inventory.setItem(SLOT_CROWN_MODEL, item(Material.GOLDEN_HELMET, "editor.crown-model",
-                Placeholder.unparsed("value", String.valueOf(koth.crownCustomModelData()))));
+        inventory.setItem(SLOT_CROWN_MODEL, crownButton(koth));
         inventory.setItem(SLOT_CROWN_GLOW, toggle(koth.crownGlow(), "editor.crown-glow"));
         inventory.setItem(SLOT_CROWN_GLINT, toggle(koth.crownGlint(), "editor.crown-glint"));
         inventory.setItem(SLOT_CROWN_OUTLINE, item(
@@ -106,8 +105,24 @@ public final class KothEditor implements Listener {
         Menus.fillEmpty(inventory);
     }
 
+    private @NotNull ItemStack crownButton(@NotNull Koth koth) {
+        ItemStack stack = CrownDisplay.crownItem(koth);
+        if (stack == null) {
+            stack = new ItemStack(Material.BARRIER);
+        }
+        String material = koth.usesDefaultCrown() ? "default (resource pack)" : koth.crownMaterial();
+        String model = koth.usesDefaultCrown() || koth.crownCustomModelData() <= 0
+                ? "none" : String.valueOf(koth.crownCustomModelData());
+        return decorate(stack, "editor.crown-model",
+                Placeholder.unparsed("value", material),
+                Placeholder.unparsed("model", model));
+    }
+
     private @NotNull ItemStack item(@NotNull Material material, @NotNull String key, TagResolver... resolvers) {
-        ItemStack stack = new ItemStack(material);
+        return decorate(new ItemStack(material), key, resolvers);
+    }
+
+    private @NotNull ItemStack decorate(@NotNull ItemStack stack, @NotNull String key, TagResolver... resolvers) {
         ItemMeta meta = stack.getItemMeta();
         meta.displayName(plugin.messages().get(key + ".name", resolvers));
         meta.lore(plugin.messages().list(null, key + ".lore", resolvers));
@@ -122,9 +137,26 @@ public final class KothEditor implements Listener {
 
     @EventHandler
     public void onDrag(@NotNull InventoryDragEvent event) {
-        if (event.getView().getTopInventory().getHolder() instanceof EditorMenu) {
-            event.setCancelled(true);
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof EditorMenu menu)) {
+            return;
         }
+        int topSize = top.getSize();
+        boolean touchesTop = event.getRawSlots().stream().anyMatch(slot -> slot < topSize);
+        if (!touchesTop) {
+            return;
+        }
+        event.setCancelled(true);
+        if (event.getRawSlots().size() != 1 || !event.getRawSlots().contains(SLOT_CROWN_MODEL)) {
+            return;
+        }
+        ItemStack dragged = event.getOldCursor();
+        if (dragged.getType().isAir()) {
+            return;
+        }
+        setCrownItem(menu.koth, dragged);
+        plugin.koths().save(menu.koth);
+        plugin.getServer().getScheduler().runTask(plugin, () -> render(top, menu.koth));
     }
 
     @EventHandler
@@ -136,8 +168,14 @@ public final class KothEditor implements Listener {
         if (!(top.getHolder() instanceof EditorMenu menu)) {
             return;
         }
+        if (event.getClickedInventory() != null && !event.getClickedInventory().equals(top)) {
+            if (event.isShiftClick() || event.getClick() == ClickType.DOUBLE_CLICK) {
+                event.setCancelled(true);
+            }
+            return;
+        }
         event.setCancelled(true);
-        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) {
+        if (event.getClickedInventory() == null) {
             return;
         }
         Koth koth = menu.koth;
@@ -171,8 +209,11 @@ public final class KothEditor implements Listener {
                 koth.viewDistance(Math.max(-1, koth.viewDistance() + delta));
             }
             case SLOT_CROWN -> koth.crownEnabled(!koth.crownEnabled());
-            case SLOT_CROWN_MODEL -> koth.crownCustomModelData(
-                    Math.max(0, koth.crownCustomModelData() + delta));
+            case SLOT_CROWN_MODEL -> {
+                if (!editCrownItem(koth, event)) {
+                    return;
+                }
+            }
             case SLOT_CROWN_GLOW -> koth.crownGlow(!koth.crownGlow());
             case SLOT_CROWN_GLINT -> koth.crownGlint(!koth.crownGlint());
             case SLOT_CROWN_OUTLINE -> {
@@ -190,6 +231,39 @@ public final class KothEditor implements Listener {
         }
         plugin.koths().save(koth);
         render(top, koth);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static boolean editCrownItem(@NotNull Koth koth, @NotNull InventoryClickEvent event) {
+        ClickType click = event.getClick();
+        if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
+            koth.useDefaultCrown();
+            return true;
+        }
+        ItemStack cursor = event.getCursor();
+        if (!cursor.getType().isAir()) {
+            setCrownItem(koth, cursor);
+            return true;
+        }
+        int delta = switch (click) {
+            case LEFT -> 1;
+            case RIGHT -> -1;
+            case SHIFT_LEFT -> 10;
+            case SHIFT_RIGHT -> -10;
+            default -> 0;
+        };
+        if (delta == 0 || koth.usesDefaultCrown()) {
+            return false;
+        }
+        koth.crownCustomModelData(Math.max(0, koth.crownCustomModelData() + delta));
+        return true;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void setCrownItem(@NotNull Koth koth, @NotNull ItemStack item) {
+        koth.crownMaterial(item.getType().name());
+        ItemMeta meta = item.getItemMeta();
+        koth.crownCustomModelData(meta != null && meta.hasCustomModelData() ? meta.getCustomModelData() : 0);
     }
 
     private static @NotNull String nextColor(@NotNull String current) {

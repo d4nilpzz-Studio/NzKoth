@@ -265,8 +265,8 @@ public final class KothManager {
         koth.sameWorldOnly(yaml.getBoolean("display.same-world-only", false));
 
         koth.crownEnabled(yaml.getBoolean("crown.enabled", true));
-        koth.crownMaterial(yaml.getString("crown.material", "GOLDEN_HELMET"));
-        koth.crownCustomModelData(yaml.getInt("crown.custom-model-data", 1002));
+        koth.crownMaterial(yaml.getString("crown.material", Koth.DEFAULT_CROWN));
+        koth.crownCustomModelData(yaml.getInt("crown.custom-model-data", 0));
         double crownHeight = yaml.getDouble("crown.height", 2.2);
         if (crownHeight < 1.0) {
             plugin.getComponentLogger().warn(

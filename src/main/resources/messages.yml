@@ -88,10 +88,14 @@ editor:
     lore:
       - '<gray>Current: <white><value>'
   crown-model:
-    name: '<yellow>Crown custom model data'
+    name: '<yellow>Crown item'
     lore:
-      - '<gray>Current: <white><value>'
-      - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10'
+      - '<gray>Item: <white><value>'
+      - '<gray>Custom model data: <white><model>'
+      - ''
+      - '<gray>Click with an item <dark_gray>- <white>use it as the crown'
+      - '<gray>Press Q <dark_gray>- <white>reset to the resource pack crown'
+      - '<gray>Left +1 <dark_gray>| <gray>Right -1 <dark_gray>| <gray>Shift x10 <dark_gray>- <white>model data'
   crown-glow:
     name: '<yellow>Crown full bright'
     lore:

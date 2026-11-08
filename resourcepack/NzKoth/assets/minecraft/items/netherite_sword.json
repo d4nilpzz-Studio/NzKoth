@@ -5,7 +5,7 @@
     "index": 0,
     "fallback": {
       "type": "minecraft:model",
-      "model": "minecraft:item/golden_helmet"
+      "model": "minecraft:item/netherite_sword"
     },
     "entries": [
       {

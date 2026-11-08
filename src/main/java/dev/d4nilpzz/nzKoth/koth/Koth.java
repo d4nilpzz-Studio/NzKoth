@@ -2,6 +2,7 @@ package dev.d4nilpzz.nzKoth.koth;
 
 import dev.d4nilpzz.nzKoth.util.Cuboid;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,6 +10,10 @@ import java.time.Duration;
 import java.util.Locale;
 
 public final class Koth {
+
+    public static final String DEFAULT_CROWN = "DEFAULT";
+    public static final Material PACK_CROWN_MATERIAL = Material.NETHERITE_SWORD;
+    public static final int PACK_CROWN_MODEL_DATA = 1002;
 
     private final String name;
     private String displayName;
@@ -30,8 +35,8 @@ public final class Koth {
     private boolean sameWorldOnly = false;
 
     private boolean crownEnabled = true;
-    private String crownMaterial = "GOLDEN_HELMET";
-    private int crownCustomModelData = 1002;
+    private String crownMaterial = DEFAULT_CROWN;
+    private int crownCustomModelData = 0;
     private double crownHeight = 2.2;
     private int crownSpinTicks = 40;
     private boolean crownGlow = true;
@@ -192,6 +197,15 @@ public final class Koth {
 
     public void crownMaterial(@NotNull String value) {
         this.crownMaterial = value;
+    }
+
+    public boolean usesDefaultCrown() {
+        return crownMaterial.isBlank() || crownMaterial.equalsIgnoreCase(DEFAULT_CROWN);
+    }
+
+    public void useDefaultCrown() {
+        this.crownMaterial = DEFAULT_CROWN;
+        this.crownCustomModelData = 0;
     }
 
     public int crownCustomModelData() {

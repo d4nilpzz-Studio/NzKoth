@@ -34,6 +34,12 @@
                 <version>3.5.3</version>
                 <configuration>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <relocations>
+                        <relocation>
+                            <pattern>revxrsal.commands</pattern>
+                            <shadedPattern>dev.d4nilpzz.nzKoth.libs.lamp</shadedPattern>
+                        </relocation>
+                    </relocations>
                 </configuration>
                 <executions>
                     <execution>

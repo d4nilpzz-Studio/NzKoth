@@ -42,29 +42,38 @@ public final class CrownDisplay {
         this.plugin = plugin;
     }
 
-    public void show(@NotNull Player player, @NotNull Koth koth, long durationTicks) {
-        if (!koth.crownEnabled()) {
-            return;
+    public static @Nullable ItemStack crownItem(@NotNull Koth koth) {
+        boolean packCrown = koth.usesDefaultCrown();
+        Material material = packCrown ? Koth.PACK_CROWN_MATERIAL : Material.matchMaterial(koth.crownMaterial());
+        if (material == null || material.isAir() || !material.isItem()) {
+            return null;
         }
-        Material material = Material.matchMaterial(koth.crownMaterial());
-        if (material == null || material.isAir()) {
-            plugin.getComponentLogger().warn("Unknown crown material '{}' on koth '{}'",
-                    koth.crownMaterial(), koth.name());
-            return;
-        }
-        hide(player.getUniqueId());
-
+        int modelData = packCrown ? Koth.PACK_CROWN_MODEL_DATA : koth.crownCustomModelData();
         ItemStack item = new ItemStack(material);
-        if (koth.crownCustomModelData() > 0 || koth.crownGlint()) {
+        if (modelData > 0 || koth.crownGlint()) {
             ItemMeta meta = item.getItemMeta();
-            if (koth.crownCustomModelData() > 0) {
-                meta.setCustomModelData(koth.crownCustomModelData());
+            if (modelData > 0) {
+                meta.setCustomModelData(modelData);
             }
             if (koth.crownGlint()) {
                 meta.setEnchantmentGlintOverride(true);
             }
             item.setItemMeta(meta);
         }
+        return item;
+    }
+
+    public void show(@NotNull Player player, @NotNull Koth koth, long durationTicks) {
+        if (!koth.crownEnabled()) {
+            return;
+        }
+        ItemStack item = crownItem(koth);
+        if (item == null) {
+            plugin.getComponentLogger().warn("Unknown crown material '{}' on koth '{}'",
+                    koth.crownMaterial(), koth.name());
+            return;
+        }
+        hide(player.getUniqueId());
 
         double height = koth.crownHeight();
         Location spawnAt = anchorOf(player, height);
