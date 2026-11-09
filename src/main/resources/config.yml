@@ -1,3 +1,18 @@
+# Where wins and leaderboards are saved: YAML, MYSQL (also MariaDB) or POSTGRESQL
+# Changing this needs a restart. Use the same database on several servers to share leaderboards
+storage:
+  type: YAML
+  host: localhost
+  # 0 uses the default port (3306 for MySQL, 5432 for PostgreSQL)
+  port: 0
+  database: nzkoth
+  username: ''
+  password: ''
+  table-prefix: 'nzkoth_'
+  pool-size: 4
+  # Extra JDBC driver options, for example useSSL: false
+  properties: {}
+
 modules:
   bossbars: true
   scoreboards: true

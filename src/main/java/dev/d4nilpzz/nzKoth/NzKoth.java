@@ -21,7 +21,7 @@ import dev.d4nilpzz.nzKoth.leaderboard.LeaderboardService;
 import dev.d4nilpzz.nzKoth.scheduler.SchedulerEditor;
 import dev.d4nilpzz.nzKoth.scheduler.SchedulerService;
 import dev.d4nilpzz.nzKoth.storage.Storage;
-import dev.d4nilpzz.nzKoth.storage.YamlStorage;
+import dev.d4nilpzz.nzKoth.storage.StorageFactory;
 import dev.d4nilpzz.nzKoth.team.TeamResolver;
 import dev.d4nilpzz.nzKoth.text.Text;
 import dev.d4nilpzz.nzKoth.wand.StarterService;
@@ -67,8 +67,7 @@ public final class NzKoth extends JavaPlugin {
         messages = new Messages(this);
         messages.load();
 
-        storage = new YamlStorage(this);
-        storage.initialize();
+        storage = StorageFactory.create(this);
 
         koths = new KothManager(this);
         koths.loadAll();
@@ -119,9 +118,10 @@ public final class NzKoth extends JavaPlugin {
 
         placeholderApi = PapiHook.install(this);
         getComponentLogger().info(Text.parse(
-                "<green>NzKoth enabled<gray>: <white><koths><gray> koths, <white><schedules><gray> schedulers, PlaceholderAPI <white><papi_state>",
+                "<green>NzKoth enabled<gray>: <white><koths><gray> koths, <white><schedules><gray> schedulers, storage <white><storage><gray>, PlaceholderAPI <white><papi_state>",
                 Placeholder.unparsed("koths", String.valueOf(koths.all().size())),
                 Placeholder.unparsed("schedules", String.valueOf(schedulers.size())),
+                Placeholder.unparsed("storage", storage.name()),
                 Placeholder.unparsed("papi_state", placeholderApi ? "hooked" : "absent")));
     }
 

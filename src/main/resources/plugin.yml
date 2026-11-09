@@ -7,6 +7,11 @@ load: POSTWORLD
 
 softdepend: [ PlaceholderAPI ]
 
+libraries:
+  - com.zaxxer:HikariCP:${hikari.version}
+  - com.mysql:mysql-connector-j:${mysql.version}
+  - org.postgresql:postgresql:${postgresql.version}
+
 permissions:
   nzkoth.admin:
     description: Full access to NzKoth commands

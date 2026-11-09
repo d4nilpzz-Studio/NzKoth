@@ -1,15 +1,13 @@
 package dev.d4nilpzz.nzKoth.leaderboard;
 
 import dev.d4nilpzz.nzKoth.NzKoth;
+import dev.d4nilpzz.nzKoth.storage.BoardSnapshot;
+import dev.d4nilpzz.nzKoth.storage.Storage;
 import dev.d4nilpzz.nzKoth.storage.WinRecord;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -26,54 +24,42 @@ public final class LeaderboardService {
     private static final Pattern DURATION = Pattern.compile("^(\\d+)([mhdw])$");
 
     private final NzKoth plugin;
-    private final File file;
     private final Map<String, Leaderboard> boards = new ConcurrentHashMap<>();
     private BukkitTask task;
     private volatile boolean dirty;
 
     public LeaderboardService(@NotNull NzKoth plugin) {
         this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "leaderboards.yml");
+    }
+
+    private @NotNull Storage storage() {
+        return plugin.storage();
     }
 
     public void load() {
-        boards.clear();
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        ConfigurationSection root = yaml.getConfigurationSection("boards");
-        if (root != null) {
-            for (String id : root.getKeys(false)) {
-                ConfigurationSection section = root.getConfigurationSection(id);
-                if (section == null) {
-                    continue;
-                }
-                Duration period = periodOf(id);
-                if (period == null) {
-                    continue;
-                }
-                Leaderboard board = new Leaderboard(id, period,
-                        Instant.ofEpochSecond(section.getLong("period-start", Instant.now().getEpochSecond())));
-                ConfigurationSection teams = section.getConfigurationSection("teams");
-                if (teams != null) {
-                    for (String key : teams.getKeys(false)) {
-                        board.loadTeam(key, teams.getInt(key, 0));
-                    }
-                }
-                ConfigurationSection entries = section.getConfigurationSection("entries");
-                if (entries != null) {
-                    for (String key : entries.getKeys(false)) {
-                        try {
-                            board.load(UUID.fromString(key),
-                                    entries.getString(key + ".name", key),
-                                    entries.getInt(key + ".wins", 0));
-                        } catch (IllegalArgumentException ignored) {
-                        }
-                    }
-                }
-                boards.put(id, board);
-            }
+        if (!boards.isEmpty() && !storage().shared()) {
+            save();
         }
+        boards.clear();
+        apply(storage().loadBoards());
         for (String id : plugin.getConfig().getStringList("leaderboards.preload")) {
             board(id.toLowerCase(Locale.ROOT));
+        }
+    }
+
+    private void apply(@NotNull List<BoardSnapshot> snapshots) {
+        for (BoardSnapshot snapshot : snapshots) {
+            if (periodOf(snapshot.id()) == null) {
+                continue;
+            }
+            Leaderboard board = new Leaderboard(snapshot.id(), periodOf(snapshot.id()), snapshot.periodStart());
+            for (WinRecord entry : snapshot.entries()) {
+                board.load(entry.playerId(), entry.playerName(), entry.wins());
+            }
+            for (Map.Entry<String, Integer> team : snapshot.teams().entrySet()) {
+                board.loadTeam(team.getKey(), team.getValue());
+            }
+            boards.put(snapshot.id(), board);
         }
     }
 
@@ -97,9 +83,16 @@ public final class LeaderboardService {
         Instant now = Instant.now();
         for (Leaderboard board : boards.values()) {
             if (board.hasExpired(now)) {
+                Instant previous = board.periodStart();
                 board.roll(now);
+                storage().rollBoard(board.id(), previous, board.periodStart());
                 dirty = true;
             }
+        }
+        if (storage().shared()) {
+            dirty = false;
+            apply(storage().loadBoards());
+            return;
         }
         if (dirty) {
             dirty = false;
@@ -111,6 +104,7 @@ public final class LeaderboardService {
         for (Leaderboard board : boards.values()) {
             board.record(playerId, playerName);
             board.recordTeam(team);
+            storage().recordBoardWin(board.id(), playerId, playerName, team);
         }
         dirty = true;
     }
@@ -134,6 +128,7 @@ public final class LeaderboardService {
         for (Leaderboard board : boards.values()) {
             board.reset(playerId);
         }
+        storage().resetBoardPlayer(playerId);
         dirty = true;
     }
 
@@ -149,6 +144,7 @@ public final class LeaderboardService {
         }
         Leaderboard created = new Leaderboard(key, period, alignedStart(period));
         boards.put(key, created);
+        storage().createBoard(key, created.periodStart());
         dirty = true;
         return created;
     }
@@ -209,23 +205,6 @@ public final class LeaderboardService {
     }
 
     public synchronized void save() {
-        YamlConfiguration yaml = new YamlConfiguration();
-        for (Leaderboard board : boards.values()) {
-            String base = "boards." + board.id();
-            yaml.set(base + ".period-start", board.periodStart().getEpochSecond());
-            for (Map.Entry<UUID, Integer> entry : board.raw().entrySet()) {
-                String path = base + ".entries." + entry.getKey();
-                yaml.set(path + ".name", board.rawNames().getOrDefault(entry.getKey(), ""));
-                yaml.set(path + ".wins", entry.getValue());
-            }
-            for (Map.Entry<String, Integer> entry : board.rawTeams().entrySet()) {
-                yaml.set(base + ".teams." + entry.getKey(), entry.getValue());
-            }
-        }
-        try {
-            yaml.save(file);
-        } catch (IOException exception) {
-            plugin.getComponentLogger().error("Could not save leaderboards.yml", exception);
-        }
+        storage().saveBoards(boards.values());
     }
 }
